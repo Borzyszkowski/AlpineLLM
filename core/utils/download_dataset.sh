@@ -24,24 +24,23 @@ fi
 DATASET="${1:-alpine}"
 
 # URLs per dataset
-SHAKESPEARE_URLS=(
-    "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt"
-)
-
 ALPINE_URLS=(
     "https://www.gutenberg.org/cache/epub/56063/pg56063.txt" # Oxford Mountaineering Essays
     "https://www.gutenberg.org/cache/epub/69128/pg69128.txt" # The making of a mountaineer
 )
+SHAKESPEARE_URLS=(
+    "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt"
+)
 
 # Map dataset to URL list and default dir
 case "$DATASET" in
-    shakespeare)
-        URLS=("${SHAKESPEARE_URLS[@]}")
-        TARGET_DIR="./raw_data/shakespeare"
-        ;;
     alpine)
         URLS=("${ALPINE_URLS[@]}")
         TARGET_DIR="./raw_data/alpine"
+        ;;
+    shakespeare)
+        URLS=("${SHAKESPEARE_URLS[@]}")
+        TARGET_DIR="./raw_data/shakespeare"
         ;;
     *)
         echo "Unknown dataset type: $DATASET"

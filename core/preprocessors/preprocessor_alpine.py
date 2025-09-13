@@ -15,7 +15,7 @@ from core.utils.utils import makepath
 from core.preprocessors.preprocessing_utils import np2torch, DotDict
 
 
-class PreprocessorBase:
+class PreprocessorAlpine:
     def __init__(self, cfg):
         self.inp_path = cfg.inp_path
         self.out_path = cfg.out_path
