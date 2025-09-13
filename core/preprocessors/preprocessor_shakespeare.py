@@ -65,15 +65,15 @@ class PreprocessorShakespeare:
         logging.info(f'Number of all data samples (tokens): {len(data)}')
         logging.info(f'Splitting data into train/test/val with ratio {train_size}/{test_size}/{val_size}')
 
-        # do not shuffle the sequences to keep consistency of text
-        n = len(sequences)
+        # do not shuffle the data to keep consistency of text
+        n = len(data)
         train_end = int(train_size * n)
         val_end = int((train_size + val_size) * n)
         
         splits = {
-            'train': sequences[:train_end],
-            'val': sequences[train_end:val_end],
-            'test': sequences[val_end:]
+            'train': data[:train_end],
+            'val': data[train_end:val_end],
+            'test': data[val_end:]
         }
 
         logging.info(f'Splitted: {len(splits["train"])} train - {len(splits["test"])} test - {len(splits["val"])} val')
