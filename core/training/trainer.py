@@ -118,7 +118,7 @@ class Trainer:
     def train(self, epoch_num, ds_name='train'):
         """ Main training logic """
         self.model.train()
-        epoch_loss = self.set_epoch_metrics()
+        epoch_loss = []
 
         # Generate some example text to verify the model is working
         context = torch.zeros((1, 1), dtype=torch.long, device=self.device)
@@ -159,7 +159,8 @@ class Trainer:
     def evaluate(self, epoch_num, ds_name='val'):
         """ Main evaluation logic for validation and testing of the model """
         data = self.ds_val if ds_name == 'val' else self.ds_test
-        epoch_loss = self.set_epoch_metrics()
+        self.model.eval()
+        epoch_loss = []
 
         # Initialize the evaluator if a test set is used
         self.evaluator = EvaluatorLLM(self.tokenizer) if 'test' in ds_name else None
@@ -201,11 +202,6 @@ class Trainer:
         """ Compute the epoch summary and save the report """
         epoch_loss = sum(epoch_loss) / len(epoch_loss)
         train.report({"mode": ds_name, "loss": epoch_loss, "epoch_num": epoch_num})
-        return epoch_loss
-
-    def set_epoch_metrics(self):
-        """ Set data structures where metrics for each epoch are stored """
-        epoch_loss = []
         return epoch_loss
 
     def set_summary_writer(self):
