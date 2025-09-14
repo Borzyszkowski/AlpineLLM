@@ -66,7 +66,7 @@ def run_hyperparameter_search(cfg, cpus_per_trial=1, gpus_per_trial=1):
     # define the hyperparameters that have to be explored
     hyperparam_cfg = {
         "lr": tune.grid_search([0.001]),
-        "batch_size": tune.grid_search([4]),
+        "batch_size": tune.grid_search([512]),
         "context_len": tune.grid_search([8]),
     }
     logger.debug(f"hyperparam_cfg: {hyperparam_cfg}")

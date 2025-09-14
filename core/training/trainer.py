@@ -9,12 +9,13 @@ import torch
 from datetime import datetime
 from ray import train
 from torch import nn, optim
+from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 
 from core.evaluators.evaluator_base import EvaluatorBase
 from core.dataloaders.dataloader_llm import DataloaderLLM
-from core.models.model_base import ModelBase
+from core.models.model_bigram import BigramLanguageModel
 from core.training.training_utils import EarlyStopping
 from core.utils.utils import makelogger, makepath
 
@@ -117,9 +118,9 @@ class Trainer:
         for (it, batch) in enumerate(self.ds_train, 0):
 
             # Create inputs for the neural network
-            input_tensor, labels, _ = self.prepare_input(batch)
+            input_tensor, target_tensor = batch
             input_tensor = input_tensor.to(self.device)
-            labels = labels.to(self.device)
+            target_tensor = target_tensor.to(self.device)
 
             # Generate model visualization and information about the input tensor
             if epoch_num == 1 and it == 0:
@@ -127,10 +128,10 @@ class Trainer:
 
             # Clear gradients
             self.optimizer.zero_grad()
-            outputs = self.model(input_tensor)
+            output_tensor = self.model(input_tensor)
 
             # Calculate the loss function
-            current_loss = self.compute_loss(outputs, labels)
+            current_loss = self.compute_loss(output_tensor, target_tensor)
 
             # Calculating gradients
             current_loss.backward()
@@ -157,15 +158,15 @@ class Trainer:
             for (it, batch) in enumerate(data, 0):
 
                 # Create inputs for the neural network
-                input_tensor, labels, seq_paths = self.prepare_input(batch)
+                input_tensor, target_tensor = batch
                 input_tensor = input_tensor.to(self.device)
-                labels = labels.to(self.device)
+                target_tensor = target_tensor.to(self.device)
 
                 # Forward propagation
-                outputs = self.model(input_tensor)
+                output_tensor = self.model(input_tensor)
 
                 # Calculate the loss function
-                current_loss = self.compute_loss(outputs, labels)
+                current_loss = self.compute_loss(output_tensor, target_tensor)
                 epoch_loss.append(current_loss.item())
 
                 # Print information about the loss
@@ -173,25 +174,13 @@ class Trainer:
                     self.create_loss_message(current_loss, epoch_num, it, ds_name)
 
                 # Run evaluator on the test set samples
-                if 'test' in ds_name:
-                    self.evaluator.run_evaluator(outputs, labels, seq_paths)
+                # if 'test' in ds_name:
+                    # self.evaluator.run_evaluator(output_tensor, target_tensor)
 
-            # Generate classification report at the end of the test set processing
-            self.evaluator.gen_full_report(self.trial_dir, self.swriter) if 'test' in ds_name else None
+            # Generate evaluation report at the end of the test set processing
+            # self.evaluator.gen_full_report(self.trial_dir, self.swriter) if 'test' in ds_name else None
 
             return self.compute_epoch_summary(ds_name, epoch_loss, epoch_num)
-
-    def prepare_input(self, batch):
-        """ Prepares inputs for the training """
-        
-        # Select input features
-        input_tensor = batch[0]
-
-        # Get label and original sequence path
-        labels = batch[1]
-        seq_paths = batch[2]
-
-        return input_tensor, labels, seq_paths
 
     def compute_epoch_summary(self, ds_name, epoch_loss, epoch_num):
         """ Compute the epoch summary and save the report """
@@ -237,7 +226,7 @@ class Trainer:
 
     def select_model(self):
         """ Selects the neural network architecture based on the desired configuration """
-        model = ModelBase().to(self.device)
+        model = BigramLanguageModel(vocab_size=65).to(self.device) # TODO: vocab_size should be dynamic
         model_name = model.__class__.__name__ if not self.cfg.model_name else self.cfg.model_name
         logging.info(f'Selected model name: {model_name}')
         return model_name, model
@@ -278,16 +267,14 @@ class Trainer:
     def export_to_onnx(self, onnx_path):
         """ Export the trained model to ONNX format """
         logging.info(f"Exporting model to ONNX format...")
-
-        # Automatically infer input size from the model
-        input_dim = self.model.left_path[0].in_features + self.model.right_path[0].in_features
-        mock_input = torch.randn(1, input_dim, device=self.device)
-
+        example_input, example_target = next(iter(self.ds_test))
+        example_input = example_input.to(self.device)
         torch.onnx.export(
-            self.model, mock_input, onnx_path,
-            input_names=['input'], output_names=['output'],
-            dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}},
-            opset_version=11
+            self.model, example_input, onnx_path,
+            input_names=['input_ids'], output_names=['logits'],
+            dynamic_axes={'input_ids': {0: 'batch_size', 1: 'context_len'},
+                          'logits': {0: 'batch_size', 1: 'context_len'}},
+            opset_version=12
         )
         logging.info(f"Model exported to ONNX saved at: {onnx_path}")
 
@@ -304,10 +291,12 @@ class Trainer:
             logging.debug(f"Input tensor shape: {str(input_tensor.shape)}")
             f.write(f"Input tensor shape: {str(input_tensor.shape)}")
 
-    def compute_loss(self, outputs, labels):
+    def compute_loss(self, output_logits, targets):
         """ Define and compute the loss function """
-        classification_loss = torch.nn.NLLLoss()
-        loss = classification_loss(outputs, labels)
+        B, T, C = output_logits.shape
+        output_logits = output_logits.view(B*T, C)
+        targets = targets.view(B*T)
+        loss = F.cross_entropy(output_logits, targets)
         return loss
 
     def load_data(self):
