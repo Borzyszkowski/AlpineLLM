@@ -2,6 +2,7 @@
 
 import torch
 import torch.nn as nn
+from torch.nn import functional as F
 
 from core.utils.time_exec_utils import log_execution_time
 
