@@ -19,17 +19,22 @@ class EvaluatorLLM:
     """
     def __init__(self, tokenizer):
         self.tokenizer = tokenizer
-        self.cumulated_outputs = []
+        self.cumulated_preds = []
         self.cumulated_targets = []
 
     def run_evaluator(self, output_tensor, target_tensor):
         """ 
         Accumulates inference results for every batch of data. 
+        Token with highest probability is selected as prediction from the output_tensor.
         Args:
             output_tensor  # Shape: [batch_size, context_len, vocab_size]
-            target_tensor  # Shape: [batch_size, context_len, vocab_size]
+            target_tensor  # Shape: [batch_size, context_len]
         """
-        self.cumulated_outputs.extend(output_tensor.cpu().tolist())
+
+        # Greedy decoding: pick the most likely token at each position
+        prediction = torch.argmax(output_tensor, dim=-1)  # (B, T)
+
+        self.cumulated_preds.extend(prediction.cpu().tolist())
         self.cumulated_targets.extend(target_tensor.cpu().tolist())
 
     def gen_full_report(self, output_dir, swriter):
@@ -39,12 +44,16 @@ class EvaluatorLLM:
         """
         logging.info("Running Evaluation Report Generation!")
 
+        # Decode accumulated predictions and targets
+        decoded_preds = [self.tokenizer.decode(seq) for seq in self.cumulated_preds]
+        decoded_targets = [self.tokenizer.decode(seq) for seq in self.cumulated_targets]
+
         # Ensures that all accumulated values have the same size
-        assert len(self.cumulated_outputs) == len(self.cumulated_targets)
+        assert len(self.cumulated_preds) == len(self.cumulated_targets)
+        assert len(decoded_preds) == len(decoded_targets)
 
         # Creates a pandas data frame of the accumulated data
-        # TODO: Plots just one element as an example, should be extended to more samples / statistics
-        df = create_dataframe(self.tokenizer, self.cumulated_outputs[0][0], self.cumulated_targets[0][0])
+        df = create_dataframe(decoded_preds, decoded_targets)
         df.to_csv(os.path.join(output_dir, "evaluation_results_table.csv"), index=False)
         df_html = df.to_html(index=False, escape=False)
         swriter.add_text("Evaluation Results Table", df_html, 0)
