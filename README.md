@@ -60,6 +60,12 @@ We provide several unit tests that allow to quickly start and test the key compo
     python3 -m core.dataloaders.dataloader_llm
     ```
 
+- Evaluator unit test
+
+    ```
+    python3 -m core.evaluators.evaluator_llm
+    ```
+
 ### Contact and technical support
 - <b>Bartek Borzyszkowski</b> <br>
     Web: <a href="https://borzyszkowski.github.io/">borzyszkowski.github.io</a>

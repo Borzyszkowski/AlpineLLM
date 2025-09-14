@@ -13,7 +13,7 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 
-from core.evaluators.evaluator_base import EvaluatorBase
+from core.evaluators.evaluator_llm import EvaluatorLLM
 from core.dataloaders.dataloader_llm import DataloaderLLM
 from core.models.model_bigram import BigramLanguageModel
 from core.training.training_utils import EarlyStopping
@@ -152,7 +152,7 @@ class Trainer:
         epoch_loss = self.set_epoch_metrics()
 
         # Initialize the evaluator if a test set is used
-        self.evaluator = EvaluatorBase(self.cfg) if 'test' in ds_name else None
+        self.evaluator = EvaluatorLLM() if 'test' in ds_name else None
 
         with torch.no_grad():
             for (it, batch) in enumerate(data, 0):
@@ -174,11 +174,11 @@ class Trainer:
                     self.create_loss_message(current_loss, epoch_num, it, ds_name)
 
                 # Run evaluator on the test set samples
-                # if 'test' in ds_name:
-                    # self.evaluator.run_evaluator(output_tensor, target_tensor)
+                if 'test' in ds_name:
+                    self.evaluator.run_evaluator(output_tensor, target_tensor)
 
             # Generate evaluation report at the end of the test set processing
-            # self.evaluator.gen_full_report(self.trial_dir, self.swriter) if 'test' in ds_name else None
+            self.evaluator.gen_full_report(self.trial_dir, self.swriter) if 'test' in ds_name else None
 
             return self.compute_epoch_summary(ds_name, epoch_loss, epoch_num)
 

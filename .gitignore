@@ -211,3 +211,4 @@ __marimo__/
 raw_data/
 PREPROCESSED_DATA/
 TRAINING_RESULTS/
+output*
