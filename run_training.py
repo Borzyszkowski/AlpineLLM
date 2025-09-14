@@ -66,7 +66,8 @@ def run_hyperparameter_search(cfg, cpus_per_trial=1, gpus_per_trial=1):
     # define the hyperparameters that have to be explored
     hyperparam_cfg = {
         "lr": tune.grid_search([0.001]),
-        "batch_size": tune.grid_search([1]),
+        "batch_size": tune.grid_search([64]),
+        "context_len": tune.grid_search([8]),
     }
     logger.debug(f"hyperparam_cfg: {hyperparam_cfg}")
 
@@ -113,9 +114,9 @@ def parse_args():
     parser = argparse.ArgumentParser(
                         prog = "Training",
                         description = "Run training pipeline.")
-    parser.add_argument("--data-path", required=True, type=str,
-                        help = "Absolute path to the directory that contains ready dataset for training.")
-    parser.add_argument('--work-dir', required=True, type=str,
+    parser.add_argument("--data-path", required=False, default='./PREPROCESSED_DATA/P00', type=str,
+                        help = "The path to the directory that contains ready dataset for training.")
+    parser.add_argument('--work-dir', required=False, default='./TRAINING_RESULTS', type=str,
                         help='The path to the working directory where the training results will be saved.')
     parser.add_argument('--expr-ID', required=False, default='T00', type=str,
                         help='Training ID')
@@ -127,6 +128,10 @@ if __name__ == '__main__':
     args = parse_args()
     cwd = os.getcwd()
 
+    # Make sure that the working directory path is absolute
+    if not os.path.isabs(args.work_dir):
+        args.work_dir = os.path.abspath(os.path.join(cwd, args.work_dir)) 
+
     # Define the experiment configuration (user config overwrites default)
     user_cfg_path = os.path.join(cwd, 'configs/training_cfg.yml')
     default_config = {
@@ -137,7 +142,7 @@ if __name__ == '__main__':
         'work_dir': os.path.join(args.work_dir, args.expr_ID),
         'load_weights_path': None,
         'try_num': 0,
-        'n_epochs': 1,
+        'n_epochs': 10,
         'log_every_iteration': 10,
         'cuda_id': 0,
         'model_name': None,

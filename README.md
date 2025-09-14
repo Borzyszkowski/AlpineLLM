@@ -14,6 +14,13 @@ Please use a Python virtual environment to install the dependencies:
 
 ### How to start?
 
+- Download dataset
+
+    The dataset consists of raw text corpora, including public-domain literature related to alpinism. It is based on several books available through Project Gutenberg and can be downloaded using the provided script:
+    ```
+    bash core/utils/download_dataset.sh
+    ```
+
 - Pre-processing
 
     The repository provides offline pre-processing stage that aims to serialize data to speed up training. Please refer to the pre-processing config file for more details.
@@ -50,7 +57,13 @@ We provide several unit tests that allow to quickly start and test the key compo
 - Data loader unit test
 
     ```
-    python3 -m core.dataloaders.dataloader
+    python3 -m core.dataloaders.dataloader_llm
+    ```
+
+- Evaluator unit test
+
+    ```
+    python3 -m core.evaluators.evaluator_llm
     ```
 
 ### Contact and technical support

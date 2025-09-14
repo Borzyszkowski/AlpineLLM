@@ -15,7 +15,7 @@ from core.utils.utils import makepath
 from core.preprocessors.preprocessing_utils import np2torch, DotDict
 
 
-class PreprocessorBase:
+class PreprocessorAlpine:
     def __init__(self, cfg):
         self.inp_path = cfg.inp_path
         self.out_path = cfg.out_path
@@ -101,8 +101,8 @@ class PreprocessorBase:
         logging.info(f'Splitting data into train/test/val with ratio {train_size}/{test_size}/{val_size}')
 
         splits = {'train': [], 'test': [], 'val': []}
-        train, test = train_test_split(sequences, test_size=test_size)
-        train, val = train_test_split(train, test_size=val_size)
+        train, test = train_test_split(sequences, test_size=test_size, shuffle=False)
+        train, val = train_test_split(train, test_size=val_size, shuffle=False)
         splits['train'].extend(train)
         splits['test'].extend(test)
         splits['val'].extend(val)

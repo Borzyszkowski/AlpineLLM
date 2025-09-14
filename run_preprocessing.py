@@ -7,7 +7,8 @@ import logging
 import os
 
 from core.utils.utils import makelogger, Config
-from core.preprocessors.preprocessor_base import PreprocessorBase
+from core.preprocessors.preprocessor_alpine import PreprocessorAlpine
+from core.preprocessors.preprocessor_shakespeare import PreprocessorShakespeare
 
 
 def parse_args():
@@ -15,11 +16,11 @@ def parse_args():
     parser = argparse.ArgumentParser(
                         prog = "Preprocessing",
                         description = "Run preprocessing pipeline.")
-    parser.add_argument('--inp-path', required=True, type=str,
+    parser.add_argument('--inp-path', required=False, default='./raw_data', type=str,
                         help='The path to the raw data that should be pre-processed.')
-    parser.add_argument('--out-path', required=True, type=str,
+    parser.add_argument('--out-path', required=False, default='./PREPROCESSED_DATA', type=str,
                         help='The path to the folder to save the processed data.')
-    parser.add_argument('--data-type', required=False, default='base', type=str, choices=['base'],
+    parser.add_argument('--data-type', required=False, default='alpine', type=str, choices=['alpine', 'shakespeare'],
                         help='Type of the data to be processed among supported options.')
     parser.add_argument('--process-id', required=False, default='P00', type=str,
                         help='The appropriate ID for the processed data (folder name).')
@@ -35,7 +36,7 @@ if __name__ == '__main__':
     user_cfg_path = os.path.join(cwd, 'configs/preprocessing_cfg.yml')
     default_config = {
         'data_type': args.data_type,
-        'inp_path': args.inp_path,
+        'inp_path': os.path.join(args.inp_path, args.data_type),
         'out_path': os.path.join(args.out_path, args.process_id),
     }
     cfg = Config(default_config, user_cfg_path)
@@ -45,7 +46,9 @@ if __name__ == '__main__':
     
     # Run the desired data preprocessor
     logging.info(f"Running pre-processor for data_type {cfg.data_type}")
-    if cfg.data_type == 'base':
-        PreprocessorBase(cfg)
+    if cfg.data_type == 'alpine':
+        PreprocessorAlpine(cfg)
+    elif cfg.data_type == 'shakespeare':
+        PreprocessorShakespeare(cfg)
     else:
         raise NotImplementedError(f"Preprocessor for data type {cfg.data_type} is not implemented yet.")
