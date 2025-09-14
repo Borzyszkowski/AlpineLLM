@@ -156,6 +156,7 @@ class Trainer:
 
         return self.compute_epoch_summary(ds_name, epoch_loss, epoch_num)
 
+    @torch.no_grad()
     def evaluate(self, epoch_num, ds_name='val'):
         """ Main evaluation logic for validation and testing of the model """
         data = self.ds_val if ds_name == 'val' else self.ds_test
