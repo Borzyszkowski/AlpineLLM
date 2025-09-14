@@ -17,7 +17,7 @@ from core.evaluators.evaluator_llm import EvaluatorLLM
 from core.dataloaders.dataloader_llm import DataloaderLLM
 from core.models.model_bigram import BigramLanguageModel
 from core.preprocessors.tokenizers import CharacterLevelTokenizer
-from core.training.training_utils import EarlyStopping
+from core.training.early_stopping import EarlyStopping
 from core.utils.utils import makelogger, makepath
 
 

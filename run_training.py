@@ -66,7 +66,7 @@ def run_hyperparameter_search(cfg, cpus_per_trial=1, gpus_per_trial=1):
     # define the hyperparameters that have to be explored
     hyperparam_cfg = {
         "lr": tune.grid_search([0.001]),
-        "batch_size": tune.grid_search([512]),
+        "batch_size": tune.grid_search([64]),
         "context_len": tune.grid_search([8]),
     }
     logger.debug(f"hyperparam_cfg: {hyperparam_cfg}")
@@ -142,7 +142,7 @@ if __name__ == '__main__':
         'work_dir': os.path.join(args.work_dir, args.expr_ID),
         'load_weights_path': None,
         'try_num': 0,
-        'n_epochs': 1,
+        'n_epochs': 10,
         'log_every_iteration': 10,
         'cuda_id': 0,
         'model_name': None,

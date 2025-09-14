@@ -1,4 +1,4 @@
-""" Tools used for the training"""
+""" EarlyStopping denfinition """
 
 import numpy as np
 
