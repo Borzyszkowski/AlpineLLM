@@ -17,7 +17,8 @@ class EvaluatorLLM:
     EvaluatorBase class that generates evaluation metrics.
     It receives a batch of data directly from inference, eg. output / target tensors.
     """
-    def __init__(self):
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
         self.cumulated_outputs = []
         self.cumulated_targets = []
 
@@ -28,8 +29,8 @@ class EvaluatorLLM:
             output_tensor  # Shape: [batch_size, context_len, vocab_size]
             target_tensor  # Shape: [batch_size, context_len, vocab_size]
         """
-        self.cumulated_outputs.extend(output_tensor.cpu().numpy())
-        self.cumulated_targets.extend(target_tensor.cpu().numpy())
+        self.cumulated_outputs.extend(output_tensor.cpu().tolist())
+        self.cumulated_targets.extend(target_tensor.cpu().tolist())
 
     def gen_full_report(self, output_dir, swriter):
         """ 
@@ -42,7 +43,8 @@ class EvaluatorLLM:
         assert len(self.cumulated_outputs) == len(self.cumulated_targets)
 
         # Creates a pandas data frame of the accumulated data
-        df = create_dataframe(self.cumulated_outputs, self.cumulated_targets)
+        # TODO: Plots just one element as an example, should be extended to more samples / statistics
+        df = create_dataframe(self.tokenizer, self.cumulated_outputs[0][0], self.cumulated_targets[0][0])
         df.to_csv(os.path.join(output_dir, "evaluation_results_table.csv"), index=False)
         df_html = df.to_html(index=False, escape=False)
         swriter.add_text("Evaluation Results Table", df_html, 0)
@@ -54,10 +56,11 @@ def test_evaluator(out_path):
     """
     print("Evaluator test function...")
     swriter = SummaryWriter(log_dir=out_path)
-    evaluator = EvaluatorLLM()
+    tokenizer = CharacterLevelTokenizer()
+    evaluator = EvaluatorLLM(tokenizer)
 
-    output_tensor = torch.rand(2, 8, 65) 
-    target_tensor = torch.rand(2, 8, 65)
+    output_tensor = torch.rand(2, 8, len(tokenizer.vocab)) 
+    target_tensor = torch.rand(2, 8, len(tokenizer.vocab))
 
     # Run evaluator on the same sample 10 times as a check
     for _ in range(10):

@@ -8,7 +8,7 @@ import pandas as pd
 def create_dataframe(tokenizer, outputs, targets):
     """ Create a dataframe of the model's results. """
     df = pd.DataFrame({
-        "Outputs": outputs,
-        "Targets": targets,
+        "Outputs": tokenizer.decode(outputs),
+        "Targets": tokenizer.decode(targets),
     })
     return df

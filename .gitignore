@@ -209,6 +209,7 @@ __marimo__/
 # Other custom ignores
 *nfs*
 raw_data/
+output*
 PREPROCESSED_DATA/
 TRAINING_RESULTS/
-output*
+EVAL_RESULTS/

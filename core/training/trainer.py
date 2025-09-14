@@ -156,7 +156,7 @@ class Trainer:
         epoch_loss = self.set_epoch_metrics()
 
         # Initialize the evaluator if a test set is used
-        self.evaluator = EvaluatorLLM() if 'test' in ds_name else None
+        self.evaluator = EvaluatorLLM(self.tokenizer) if 'test' in ds_name else None
 
         with torch.no_grad():
             for (it, batch) in enumerate(data, 0):
