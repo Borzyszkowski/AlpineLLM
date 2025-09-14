@@ -69,7 +69,7 @@ def test_evaluator(out_path):
     evaluator = EvaluatorLLM(tokenizer)
 
     output_tensor = torch.rand(2, 8, len(tokenizer.vocab)) 
-    target_tensor = torch.rand(2, 8, len(tokenizer.vocab))
+    target_tensor = torch.randint(low=0, high=len(tokenizer.vocab), size=(2, 8))
 
     # Run evaluator on the same sample 10 times as a check
     for _ in range(10):
