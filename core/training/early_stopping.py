@@ -1,4 +1,4 @@
-""" EarlyStopping denfinition """
+""" EarlyStopping definition """
 
 import numpy as np
 
