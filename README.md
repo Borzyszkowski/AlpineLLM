@@ -57,7 +57,7 @@ We provide several unit tests that allow to quickly start and test the key compo
 - Data loader unit test
 
     ```
-    python3 -m core.dataloaders.dataloader
+    python3 -m core.dataloaders.dataloader_llm
     ```
 
 ### Contact and technical support

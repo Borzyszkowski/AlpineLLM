@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 
 from core.evaluators.evaluator_base import EvaluatorBase
-from core.dataloaders.dataloader_base import DataloaderBase
+from core.dataloaders.dataloader_llm import DataloaderLLM
 from core.models.model_base import ModelBase
 from core.training.training_utils import EarlyStopping
 from core.utils.utils import makelogger, makepath
@@ -318,7 +318,9 @@ class Trainer:
                        'drop_last': False}
 
         # Load the test dataset
-        ds_test = DataloaderBase(dataset_dir=self.cfg.dataset_dir, data_split="test")
+        ds_test = DataloaderLLM(dataset_dir=self.cfg.dataset_dir, 
+                                data_split="test", 
+                                context_len=self.hyperparam_cfg['context_len'])    
         ds_test = DataLoader(ds_test, **test_kwargs)
         logging.info(f'Dataset Test size: {len(ds_test.dataset)}')
 
@@ -332,12 +334,16 @@ class Trainer:
                             'drop_last': False}
 
         # Load train data
-        ds_train = DataloaderBase(dataset_dir=self.cfg.dataset_dir, data_split='train')
+        ds_train = DataloaderLLM(dataset_dir=self.cfg.dataset_dir, 
+                                 data_split='train',
+                                 context_len=self.hyperparam_cfg['context_len'])    
         ds_train = DataLoader(ds_train, **train_val_kwargs)
         logging.info(f'Dataset Train size: {len(ds_train.dataset)}')
         
         # Load val data
-        ds_val = DataloaderBase(dataset_dir=self.cfg.dataset_dir, data_split='val')
+        ds_val = DataloaderLLM(dataset_dir=self.cfg.dataset_dir, 
+                               data_split='val',
+                               context_len=self.hyperparam_cfg['context_len'])    
         ds_val = DataLoader(ds_val, **train_val_kwargs)
         logging.info(f'Dataset Val size: {len(ds_val.dataset)}')
 
