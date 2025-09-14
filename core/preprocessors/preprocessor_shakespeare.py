@@ -13,6 +13,7 @@ from tqdm import tqdm
 
 from core.utils.utils import makepath
 from core.preprocessors.preprocessing_utils import np2torch, DotDict
+from core.preprocessors.tokenizers import CharacterLevelTokenizer
 
 
 class PreprocessorShakespeare:
@@ -42,19 +43,16 @@ class PreprocessorShakespeare:
         logging.debug(f"The first 1000 characters: \n {text[:1000]}")
 
         # all the unique characters that occur in this text
-        chars = sorted(list(set(text)))
-        vocab_size = len(chars)
+        vocab = sorted(list(set(text)))
+        vocab_size = len(vocab)
         logging.info(f"Vocabulary size: {vocab_size}")
-        logging.debug(f"All the unique characters: {''.join(chars)}")
+        logging.debug(f"All the unique characters: {''.join(vocab)}")
 
         # very simple character-level tokenizer
-        stoi = { ch:i for i,ch in enumerate(chars) }
-        itos = { i:ch for i,ch in enumerate(chars) }
-        encode = lambda s: [stoi[c] for c in s]           # encoder: take a string, output a list of integers
-        decode = lambda l: ''.join([itos[i] for i in l])  # decoder: take a list of integers, output a string
+        tokenizer = CharacterLevelTokenizer(vocab)
 
         # encode the entire text dataset and store it into a torch.Tensor
-        data = torch.tensor(encode(text), dtype=torch.long)
+        data = torch.tensor(tokenizer.encode(text), dtype=torch.long)
         logging.info(f"Dataset shape: {data.shape} & Dataset type {data.dtype}")
         logging.debug(f"The first 1000 characters tokenized: \n {data[:1000]}")
         return data
