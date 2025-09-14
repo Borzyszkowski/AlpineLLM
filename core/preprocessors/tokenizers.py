@@ -1,11 +1,13 @@
 """ Collection of tokenizers for text data. """
 
+import string
+
 
 class CharacterLevelTokenizer:
     """ A simple character-level tokenizer for text data. """
 
-    def __init__(self, vocab):
-        self.vocab = vocab
+    def __init__(self):
+        self.vocab = sorted(set(string.ascii_letters + string.digits + string.punctuation + " \n"))
         self.token_to_id = {token: idx for idx, token in enumerate(self.vocab)}
         self.id_to_token = {idx: token for idx, token in enumerate(self.vocab)}
 

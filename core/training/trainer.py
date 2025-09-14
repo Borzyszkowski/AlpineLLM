@@ -16,6 +16,7 @@ from tensorboardX import SummaryWriter
 from core.evaluators.evaluator_llm import EvaluatorLLM
 from core.dataloaders.dataloader_llm import DataloaderLLM
 from core.models.model_bigram import BigramLanguageModel
+from core.preprocessors.tokenizers import CharacterLevelTokenizer
 from core.training.training_utils import EarlyStopping
 from core.utils.utils import makelogger, makepath
 
@@ -34,6 +35,9 @@ class Trainer:
 
         # set the hardware type (use GPU with CUDA if available)
         self.device = self.set_hardware_type()
+        
+        # select the tokenizer (same as used in data pre-processing)
+        self.tokenizer_name, self.tokenizer = self.select_tokenizer()
 
         # select the neural network model as a backbone
         self.model_name, self.model = self.select_model()
@@ -226,10 +230,18 @@ class Trainer:
 
     def select_model(self):
         """ Selects the neural network architecture based on the desired configuration """
-        model = BigramLanguageModel(vocab_size=65).to(self.device) # TODO: vocab_size should be dynamic
+        vocab_size = len(self.tokenizer.vocab)
+        model = BigramLanguageModel(vocab_size=vocab_size).to(self.device)
         model_name = model.__class__.__name__ if not self.cfg.model_name else self.cfg.model_name
         logging.info(f'Selected model name: {model_name}')
         return model_name, model
+
+    def select_tokenizer(self):
+        """ Selects the tokenizer based on the desired configuration """
+        tokenizer = CharacterLevelTokenizer()
+        tokenizer_name = tokenizer.__class__.__name__
+        logging.info(f'Selected tokenizer name: {tokenizer_name}')
+        return tokenizer_name, tokenizer
 
     def get_model(self, model_path):
         """ Loads weights of the model from the specified path """

@@ -9,6 +9,7 @@ import torch
 from tensorboardX import SummaryWriter
 
 from core.evaluators.evaluation_metrics import create_dataframe
+from core.preprocessors.tokenizers import CharacterLevelTokenizer
 
 
 class EvaluatorLLM:

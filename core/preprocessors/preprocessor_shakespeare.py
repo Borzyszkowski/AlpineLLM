@@ -42,14 +42,10 @@ class PreprocessorShakespeare:
         logging.info(f"Length of dataset in characters: {len(text)}")
         logging.debug(f"The first 1000 characters: \n {text[:1000]}")
 
-        # all the unique characters that occur in this text
-        vocab = sorted(list(set(text)))
-        vocab_size = len(vocab)
-        logging.info(f"Vocabulary size: {vocab_size}")
-        logging.debug(f"All the unique characters: {''.join(vocab)}")
-
         # very simple character-level tokenizer
-        tokenizer = CharacterLevelTokenizer(vocab)
+        tokenizer = CharacterLevelTokenizer()
+        logging.info(f"Vocabulary size: {len(tokenizer.vocab)}")
+        logging.debug(f"All the unique characters: {''.join(tokenizer.vocab)}")
 
         # encode the entire text dataset and store it into a torch.Tensor
         data = torch.tensor(tokenizer.encode(text), dtype=torch.long)
