@@ -31,7 +31,7 @@ class BigramLanguageModel(nn.Module):
         for _ in range(max_new_tokens):
             # get the predictions
             logits = self(idx) # (B,T,C) 
-            # focus only on the last time step since the Bigram model is stateless
+            # focus only on the last time step
             logits = logits[:, -1, :] # (B, C)
             # apply softmax to get probabilities
             probs = F.softmax(logits, dim=-1) # (B, C)

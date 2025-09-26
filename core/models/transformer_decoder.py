@@ -8,7 +8,7 @@ from core.utils.time_exec_utils import log_execution_time
 
 
 class TransformerDecoder(nn.Module):
-    """ A simple bigram language model as a baseline """
+    """ GPT-style decoder-only language model """
 
     def __init__(self, vocab_size, context_len, device, embedding_dim=32):
         super(TransformerDecoder, self).__init__()
@@ -43,7 +43,7 @@ class TransformerDecoder(nn.Module):
             idx_context = idx[:, -self.context_len:]
             # get the predictions
             logits = self(idx_context) # (B,T,C) 
-            # focus only on the last time step since the Bigram model is stateless
+            # focus only on the last time step
             logits = logits[:, -1, :] # (B, C)
             # apply softmax to get probabilities
             probs = F.softmax(logits, dim=-1) # (B, C)
