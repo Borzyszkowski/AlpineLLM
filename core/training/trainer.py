@@ -241,13 +241,15 @@ class Trainer:
         """ Selects the neural network architecture based on the desired configuration """
         vocab_size = len(self.tokenizer.vocab)
         if self.cfg.model_type == 'transformer':
-            model = TransformerDecoder(vocab_size=vocab_size).to(self.device)
+            model = TransformerDecoder(vocab_size=vocab_size, 
+                                       context_len=self.hyperparam_cfg.context_len,
+                                       device=self.device).to(self.device)
         elif self.cfg.model_type == 'bigram':
             model = BigramLanguageModel(vocab_size=vocab_size).to(self.device)
         else:
             raise ValueError(f"Model type '{self.cfg.model_type}' is not supported!")
         model_name = model.__class__.__name__
-        logging.info(f'Selected model name: {model_name} of type {self.cfg.model_type}')
+        logging.info(f'Selected model type: {self.cfg.model_type} with name: {model_name}')
         return model_name, model
 
     def select_tokenizer(self):
