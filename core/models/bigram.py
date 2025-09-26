@@ -1,4 +1,4 @@
-""" Architectures of the neural network """
+""" Architecture of the BigramLanguageModel """
 
 import torch
 import torch.nn as nn

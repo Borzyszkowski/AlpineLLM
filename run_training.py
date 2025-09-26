@@ -145,7 +145,7 @@ if __name__ == '__main__':
         'n_epochs': 10,
         'log_every_iteration': 10,
         'cuda_id': 0,
-        'model_name': None,
+        'model_type': 'transformer',
         'user_cfg_path': user_cfg_path,
         'project_root_path': cwd,
         'ray_trials_path': os.path.join(args.work_dir, args.expr_ID),

@@ -80,7 +80,7 @@ if __name__ == '__main__':
         'use_multigpu': False,
         'n_workers': 10,
         'log_every_iteration': 10,
-        'model_name': None,
+        'model_type': 'transformer',
         'user_cfg_path': user_cfg_path,
         'project_root_path': cwd,
         'load_weights_path': load_weights_path,
