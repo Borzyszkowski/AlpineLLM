@@ -10,7 +10,7 @@ from core.utils.time_exec_utils import log_execution_time
 class TransformerDecoder(nn.Module):
     """ GPT-style decoder-only language model """
 
-    def __init__(self, vocab_size, context_len, device, embedding_dim=32, num_heads=4):
+    def __init__(self, vocab_size, context_len, device, embedding_dim=32, num_heads=4, n_layer=4):
         super(TransformerDecoder, self).__init__()
         self.device = device
         self.context_len = context_len
@@ -18,12 +18,8 @@ class TransformerDecoder(nn.Module):
         self.token_embedding_table = nn.Embedding(vocab_size, embedding_dim)
         # pos embedding table adds information about the position of each token in the context
         self.pos_embedding_table = nn.Embedding(context_len, embedding_dim)
-        # size of MultiHeadAttention matches the embedding dimension (num_heads * head_size = embedding_dim)
-        self.sa_heads = MultiHeadAttention(num_heads=num_heads, 
-                                           head_size=embedding_dim // num_heads, 
-                                           embedding_dim=embedding_dim,
-                                           context_len=context_len)
-        self.feed_forward = FeedForward(embedding_dim)
+        # stack multiple transformer blocks to increase model capacity
+        self.tfblocks = nn.Sequential(*[TFBlock(embedding_dim, num_heads, context_len) for _ in range(n_layer)])
         self.lm_head = nn.Linear(embedding_dim, vocab_size)
 
     @log_execution_time
@@ -38,8 +34,7 @@ class TransformerDecoder(nn.Module):
         positions = torch.arange(T).to(self.device)       # tensor([0, 1, 2, ..., T-1])
         pos_embd = self.pos_embedding_table(positions)    # (context_len, embedding_dim)
         x = token_embd + pos_embd                         # (batch_size, context_len, embedding_dim)
-        x = self.sa_heads(x)                              # (batch_size, context_len, embedding_dim)
-        x = self.feed_forward(x)                          # (batch_size, context_len, embedding_dim)
+        x = self.tfblocks(x)                              # (batch_size, context_len, embedding_dim)
         logits = self.lm_head(x)                          # (batch_size, context_len, vocab_size)
         return logits
 
@@ -60,6 +55,24 @@ class TransformerDecoder(nn.Module):
             # append sampled index to the running sequence
             idx = torch.cat((idx, idx_next), dim=1) # (B, T+1)
         return idx
+
+
+class TFBlock(nn.Module):
+    """ Single transformer block: communication (attention) followed by computation (dense) """
+
+    def __init__(self, embedding_dim, num_heads, context_len):
+        super(TFBlock, self).__init__()
+        # size of MultiHeadAttention matches the embedding dimension (num_heads * head_size = embedding_dim)
+        self.sa_heads = MultiHeadAttention(num_heads=num_heads, 
+                                           head_size=embedding_dim // num_heads, 
+                                           embedding_dim=embedding_dim,
+                                           context_len=context_len)
+        self.feed_forward = FeedForward(embedding_dim)
+
+    def forward(self, x):
+        x = self.sa_heads(x)
+        x = self.feed_forward(x)
+        return x
 
 
 class MultiHeadAttention(nn.Module):
