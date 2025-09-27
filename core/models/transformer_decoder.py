@@ -10,7 +10,7 @@ from core.utils.time_exec_utils import log_execution_time
 class TransformerDecoder(nn.Module):
     """ GPT-style decoder-only language model """
 
-    def __init__(self, vocab_size, context_len, device, embedding_dim=32, head_size=16):
+    def __init__(self, vocab_size, context_len, device, embedding_dim=32, num_heads=4):
         super(TransformerDecoder, self).__init__()
         self.device = device
         self.context_len = context_len
@@ -18,8 +18,11 @@ class TransformerDecoder(nn.Module):
         self.token_embedding_table = nn.Embedding(vocab_size, embedding_dim)
         # pos embedding table adds information about the position of each token in the context
         self.pos_embedding_table = nn.Embedding(context_len, embedding_dim)
-        # TODO: embedding_dim is temporary for head_size before adding multi-head attention
-        self.sa_head = AttentionHead(embedding_dim, embedding_dim, context_len, device) 
+        # size of MultiHeadAttention matches the embedding dimension (num_heads * head_size = embedding_dim)
+        self.sa_heads = MultiHeadAttention(num_heads=num_heads, 
+                                           head_size=embedding_dim // num_heads, 
+                                           embedding_dim=embedding_dim,
+                                           context_len=context_len)
         self.lm_head = nn.Linear(embedding_dim, vocab_size)
 
     @log_execution_time
@@ -34,7 +37,7 @@ class TransformerDecoder(nn.Module):
         positions = torch.arange(T).to(self.device)       # tensor([0, 1, 2, ..., T-1])
         pos_embd = self.pos_embedding_table(positions)    # (context_len, embedding_dim)
         x = token_embd + pos_embd                         # (batch_size, context_len, embedding_dim)
-        x = self.sa_head(x)                               # (batch_size, context_len, head_size)
+        x = self.sa_heads(x)                              # (batch_size, context_len, embedding_dim)
         logits = self.lm_head(x)                          # (batch_size, context_len, vocab_size)
         return logits
 
@@ -57,12 +60,23 @@ class TransformerDecoder(nn.Module):
         return idx
 
 
+class MultiHeadAttention(nn.Module):
+    """ Multiple heads of self-attention in parallel """
+
+    def __init__(self, num_heads, head_size, embedding_dim, context_len):
+        super().__init__()
+        self.heads = nn.ModuleList([AttentionHead(embedding_dim, head_size, context_len) for _ in range(num_heads)])
+
+    def forward(self, x):
+        out = torch.cat([h(x) for h in self.heads], dim=-1) # (batch, context_len, embedding_dim)
+        return out
+
+
 class AttentionHead(nn.Module):
     """ One head of self-attention """
 
-    def __init__(self, embedding_dim, head_size, context_len, device):
+    def __init__(self, embedding_dim, head_size, context_len):
         super(AttentionHead, self).__init__()
-        self.device = device
         self.queries = nn.Linear(embedding_dim, head_size, bias=False)
         self.keys = nn.Linear(embedding_dim, head_size, bias=False)
         self.values = nn.Linear(embedding_dim, head_size, bias=False)
