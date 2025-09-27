@@ -23,6 +23,7 @@ class TransformerDecoder(nn.Module):
                                            head_size=embedding_dim // num_heads, 
                                            embedding_dim=embedding_dim,
                                            context_len=context_len)
+        self.feed_forward = FeedForward(embedding_dim)
         self.lm_head = nn.Linear(embedding_dim, vocab_size)
 
     @log_execution_time
@@ -38,6 +39,7 @@ class TransformerDecoder(nn.Module):
         pos_embd = self.pos_embedding_table(positions)    # (context_len, embedding_dim)
         x = token_embd + pos_embd                         # (batch_size, context_len, embedding_dim)
         x = self.sa_heads(x)                              # (batch_size, context_len, embedding_dim)
+        x = self.feed_forward(x)                          # (batch_size, context_len, embedding_dim)
         logits = self.lm_head(x)                          # (batch_size, context_len, vocab_size)
         return logits
 
@@ -64,7 +66,7 @@ class MultiHeadAttention(nn.Module):
     """ Multiple heads of self-attention in parallel """
 
     def __init__(self, num_heads, head_size, embedding_dim, context_len):
-        super().__init__()
+        super(MultiHeadAttention, self).__init__()
         self.heads = nn.ModuleList([AttentionHead(embedding_dim, head_size, context_len) for _ in range(num_heads)])
 
     def forward(self, x):
@@ -101,3 +103,17 @@ class AttentionHead(nn.Module):
         weights = F.softmax(weights, dim=-1)
         output = weights @ v  # matrix multiplication (T,T) @ (B,T,C) -> (B,T,C) = (batch, context_len, head_size)
         return output
+
+
+class FeedForward(nn.Module):
+    """ Single feed-forward layer followed by a non-linearity """
+
+    def __init__(self, embedding_dim):
+        super(FeedForward, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(embedding_dim, embedding_dim),
+            nn.ReLU(),
+        )
+
+    def forward(self, x):
+        return self.net(x)
