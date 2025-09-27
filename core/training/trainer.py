@@ -233,7 +233,7 @@ class Trainer:
         """ Set the optimizer and its parameters """
         params = [var[1] for var in self.model.named_parameters()]
         params_number = sum(p.numel() for p in params if p.requires_grad)
-        logging.info('Total trainable parameters of the model: %2.3f K.' % (params_number * 1e-3))
+        logging.info('Total trainable parameters of the model: %2.3f M.' % (params_number * 1e-6))
         optimizer = optim.Adam(params, lr=self.hyperparam_cfg['lr'])
         return optimizer
 
