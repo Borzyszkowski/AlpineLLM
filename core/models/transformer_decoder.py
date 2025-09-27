@@ -18,7 +18,8 @@ class TransformerDecoder(nn.Module):
         self.token_embedding_table = nn.Embedding(vocab_size, embedding_dim)
         # pos embedding table adds information about the position of each token in the context
         self.pos_embedding_table = nn.Embedding(context_len, embedding_dim)
-        self.sa_head = AttentionHead(embedding_dim, head_size, context_len, device)
+        # TODO: embedding_dim is temporary for head_size before adding multi-head attention
+        self.sa_head = AttentionHead(embedding_dim, embedding_dim, context_len, device) 
         self.lm_head = nn.Linear(embedding_dim, vocab_size)
 
     @log_execution_time
@@ -80,10 +81,8 @@ class AttentionHead(nn.Module):
         weights = q @ k.transpose(-2, -1)  # (B,T,C) @ (B,C,T) -> (B,T,T)
         # scale by sqrt(head_size) to prevent large dot products (stabilizes gradients)
         weights = weights * C**-0.5  
-        # lower triangular matrix: ones on and below diagonal; zeros above diagonal 
-        mask = torch.tril(torch.ones(T, T)).to(self.device)
-        # mask that replaces 0 with -inf and keeps 1 as is
-        weights = weights.masked_fill(mask == 0, float('-inf'))
+        # mask replaces 0 with -inf and keeps 1 as is (ones are on and below diagonal; zeros above diagonal)
+        weights = weights.masked_fill(self.mask[:T, :T] == 0, float('-inf'))
         # softmax along the last dimension to get probabilities per row
         weights = F.softmax(weights, dim=-1)
         output = weights @ v  # matrix multiplication (T,T) @ (B,T,C) -> (B,T,C) = (batch, context_len, head_size)
