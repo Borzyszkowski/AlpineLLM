@@ -123,7 +123,6 @@ class AttentionHead(nn.Module):
         # lower triangular matrix is used to mask out future tokens in the attention mechanism
         self.register_buffer("mask", torch.tril(torch.ones(context_len, context_len)))
 
-    @log_execution_time
     def forward(self, x):
         B, T, C = x.shape    # (batch_size, context_len, embedding_dim)
         q = self.queries(x)  # (batch, context_len, head_size)
