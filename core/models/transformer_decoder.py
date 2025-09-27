@@ -70,8 +70,9 @@ class TFBlock(nn.Module):
         self.feed_forward = FeedForward(embedding_dim)
 
     def forward(self, x):
-        x = self.sa_heads(x)
-        x = self.feed_forward(x)
+        # both attention and feed-forward layers have residual connections
+        x = x + self.sa_heads(x)
+        x = x + self.feed_forward(x)
         return x
 
 
@@ -81,9 +82,12 @@ class MultiHeadAttention(nn.Module):
     def __init__(self, num_heads, head_size, embedding_dim, context_len):
         super(MultiHeadAttention, self).__init__()
         self.heads = nn.ModuleList([AttentionHead(embedding_dim, head_size, context_len) for _ in range(num_heads)])
+        # projection is needed due to residual connection to bring all heads back to embedding_dim
+        self.projection = nn.Linear(num_heads * head_size, embedding_dim)
 
     def forward(self, x):
-        out = torch.cat([h(x) for h in self.heads], dim=-1) # (batch, context_len, embedding_dim)
+        x = torch.cat([h(x) for h in self.heads], dim=-1)  # (batch, context_len, num_heads * head_size)
+        out = self.projection(x)                           # (batch, context_len, embedding_dim)
         return out
 
 
@@ -123,9 +127,11 @@ class FeedForward(nn.Module):
 
     def __init__(self, embedding_dim):
         super(FeedForward, self).__init__()
+        # embedding_dim is multiplied by 4 to reflect the original transformer paper
         self.net = nn.Sequential(
-            nn.Linear(embedding_dim, embedding_dim),
+            nn.Linear(embedding_dim, embedding_dim * 4),
             nn.ReLU(),
+            nn.Linear(embedding_dim * 4, embedding_dim),
         )
 
     def forward(self, x):
