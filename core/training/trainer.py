@@ -242,7 +242,7 @@ class Trainer:
         vocab_size = len(self.tokenizer.vocab)
         if self.cfg.model_type == 'transformer':
             model = TransformerDecoder(vocab_size=vocab_size, 
-                                       context_len=self.hyperparam_cfg.context_len,
+                                       hyperparam_cfg=self.hyperparam_cfg,
                                        device=self.device).to(self.device)
         elif self.cfg.model_type == 'bigram':
             model = BigramLanguageModel(vocab_size=vocab_size).to(self.device)

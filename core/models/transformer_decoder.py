@@ -10,16 +10,23 @@ from core.utils.time_exec_utils import log_execution_time
 class TransformerDecoder(nn.Module):
     """ GPT-style decoder-only language model """
 
-    def __init__(self, vocab_size, context_len, device, embedding_dim=32, num_heads=4, n_layer=4):
+    def __init__(self, vocab_size, hyperparam_cfg, device):
         super(TransformerDecoder, self).__init__()
         self.device = device
-        self.context_len = context_len
+
+        # model hyperparameters
+        embedding_dim = hyperparam_cfg.embedding_dim
+        num_layers = hyperparam_cfg.num_layers
+        self.context_len = hyperparam_cfg.context_len
+
         # lookup table of tokens is used so that each token reads the logits for the next token
         self.token_embedding_table = nn.Embedding(vocab_size, embedding_dim)
         # pos embedding table adds information about the position of each token in the context
-        self.pos_embedding_table = nn.Embedding(context_len, embedding_dim)
+        self.pos_embedding_table = nn.Embedding(self.context_len, embedding_dim)
         # stack multiple transformer blocks to increase model capacity
-        self.tfblocks = nn.Sequential(*[TFBlock(embedding_dim, num_heads, context_len) for _ in range(n_layer)])
+        self.tfblocks = nn.Sequential(*[TFBlock(hyperparam_cfg) for _ in range(num_layers)])
+        # final normalization and linear layer to produce logits for each token in the vocabulary
+        self.ln_f = nn.LayerNorm(embedding_dim)
         self.lm_head = nn.Linear(embedding_dim, vocab_size)
 
     @log_execution_time
@@ -35,6 +42,7 @@ class TransformerDecoder(nn.Module):
         pos_embd = self.pos_embedding_table(positions)    # (context_len, embedding_dim)
         x = token_embd + pos_embd                         # (batch_size, context_len, embedding_dim)
         x = self.tfblocks(x)                              # (batch_size, context_len, embedding_dim)
+        x = self.ln_f(x)                                  # (batch_size, context_len, embedding_dim)
         logits = self.lm_head(x)                          # (batch_size, context_len, vocab_size)
         return logits
 
@@ -60,46 +68,58 @@ class TransformerDecoder(nn.Module):
 class TFBlock(nn.Module):
     """ Single transformer block: communication (attention) followed by computation (dense) """
 
-    def __init__(self, embedding_dim, num_heads, context_len):
+    def __init__(self, hyperparam_cfg):
         super(TFBlock, self).__init__()
+
+        # model hyperparameters
+        embedding_dim = hyperparam_cfg.embedding_dim
+        num_heads = hyperparam_cfg.num_heads
+        context_len = hyperparam_cfg.context_len
+        dropout = hyperparam_cfg.dropout
+
         # size of MultiHeadAttention matches the embedding dimension (num_heads * head_size = embedding_dim)
         self.sa_heads = MultiHeadAttention(num_heads=num_heads, 
                                            head_size=embedding_dim // num_heads, 
                                            embedding_dim=embedding_dim,
-                                           context_len=context_len)
-        self.feed_forward = FeedForward(embedding_dim)
+                                           context_len=context_len,
+                                           dropout=dropout)
+        self.feed_forward = FeedForward(embedding_dim, dropout)
+        self.ln1 = nn.LayerNorm(embedding_dim)
+        self.ln2 = nn.LayerNorm(embedding_dim)
 
     def forward(self, x):
         # both attention and feed-forward layers have residual connections
-        x = x + self.sa_heads(x)
-        x = x + self.feed_forward(x)
+        x = x + self.sa_heads(self.ln1(x))
+        x = x + self.feed_forward(self.ln2(x))
         return x
 
 
 class MultiHeadAttention(nn.Module):
     """ Multiple heads of self-attention in parallel """
 
-    def __init__(self, num_heads, head_size, embedding_dim, context_len):
+    def __init__(self, num_heads, head_size, embedding_dim, context_len, dropout):
         super(MultiHeadAttention, self).__init__()
-        self.heads = nn.ModuleList([AttentionHead(embedding_dim, head_size, context_len) for _ in range(num_heads)])
+        self.heads = nn.ModuleList([AttentionHead(embedding_dim, head_size, context_len, dropout) for _ in range(num_heads)])
         # projection is needed due to residual connection to bring all heads back to embedding_dim
         self.projection = nn.Linear(num_heads * head_size, embedding_dim)
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
         x = torch.cat([h(x) for h in self.heads], dim=-1)  # (batch, context_len, num_heads * head_size)
-        out = self.projection(x)                           # (batch, context_len, embedding_dim)
+        out = self.dropout(self.projection(x))             # (batch, context_len, embedding_dim)
         return out
 
 
 class AttentionHead(nn.Module):
     """ One head of self-attention """
 
-    def __init__(self, embedding_dim, head_size, context_len):
+    def __init__(self, embedding_dim, head_size, context_len, dropout):
         super(AttentionHead, self).__init__()
         self.queries = nn.Linear(embedding_dim, head_size, bias=False)
         self.keys = nn.Linear(embedding_dim, head_size, bias=False)
         self.values = nn.Linear(embedding_dim, head_size, bias=False)
-        
+        self.dropout = nn.Dropout(dropout)
+
         # lower triangular matrix is used to mask out future tokens in the attention mechanism
         self.register_buffer("mask", torch.tril(torch.ones(context_len, context_len)))
 
@@ -118,6 +138,7 @@ class AttentionHead(nn.Module):
         weights = weights.masked_fill(self.mask[:T, :T] == 0, float('-inf'))
         # softmax along the last dimension to get probabilities per row
         weights = F.softmax(weights, dim=-1)
+        weights = self.dropout(weights)
         output = weights @ v  # matrix multiplication (T,T) @ (B,T,C) -> (B,T,C) = (batch, context_len, head_size)
         return output
 
@@ -125,13 +146,14 @@ class AttentionHead(nn.Module):
 class FeedForward(nn.Module):
     """ Single feed-forward layer followed by a non-linearity """
 
-    def __init__(self, embedding_dim):
+    def __init__(self, embedding_dim, dropout):
         super(FeedForward, self).__init__()
         # embedding_dim is multiplied by 4 to reflect the original transformer paper
         self.net = nn.Sequential(
             nn.Linear(embedding_dim, embedding_dim * 4),
             nn.ReLU(),
             nn.Linear(embedding_dim * 4, embedding_dim),
+            nn.Dropout(dropout)
         )
 
     def forward(self, x):

@@ -68,6 +68,10 @@ def run_hyperparameter_search(cfg, cpus_per_trial=1, gpus_per_trial=1):
         "lr": tune.grid_search([0.001]),
         "batch_size": tune.grid_search([64]),
         "context_len": tune.grid_search([8]),
+        "embedding_dim": tune.grid_search([32]),
+        "num_heads": tune.grid_search([4]),
+        "num_layers": tune.grid_search([4]),
+        "dropout": tune.grid_search([0.1]),
     }
     logger.debug(f"hyperparam_cfg: {hyperparam_cfg}")
 
