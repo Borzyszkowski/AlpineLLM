@@ -15,7 +15,8 @@ from tensorboardX import SummaryWriter
 
 from core.evaluators.evaluator_llm import EvaluatorLLM
 from core.dataloaders.dataloader_llm import DataloaderLLM
-from core.models.model_bigram import BigramLanguageModel
+from core.models.bigram import BigramLanguageModel
+from core.models.transformer_decoder import TransformerDecoder
 from core.preprocessors.tokenizers import CharacterLevelTokenizer
 from core.training.early_stopping import EarlyStopping
 from core.utils.utils import makelogger, makepath
@@ -118,7 +119,7 @@ class Trainer:
     def train(self, epoch_num, ds_name='train'):
         """ Main training logic """
         self.model.train()
-        epoch_loss = self.set_epoch_metrics()
+        epoch_loss = []
 
         # Generate some example text to verify the model is working
         context = torch.zeros((1, 1), dtype=torch.long, device=self.device)
@@ -156,10 +157,12 @@ class Trainer:
 
         return self.compute_epoch_summary(ds_name, epoch_loss, epoch_num)
 
+    @torch.no_grad()
     def evaluate(self, epoch_num, ds_name='val'):
         """ Main evaluation logic for validation and testing of the model """
         data = self.ds_val if ds_name == 'val' else self.ds_test
-        epoch_loss = self.set_epoch_metrics()
+        self.model.eval()
+        epoch_loss = []
 
         # Initialize the evaluator if a test set is used
         self.evaluator = EvaluatorLLM(self.tokenizer) if 'test' in ds_name else None
@@ -203,11 +206,6 @@ class Trainer:
         train.report({"mode": ds_name, "loss": epoch_loss, "epoch_num": epoch_num})
         return epoch_loss
 
-    def set_epoch_metrics(self):
-        """ Set data structures where metrics for each epoch are stored """
-        epoch_loss = []
-        return epoch_loss
-
     def set_summary_writer(self):
         """ Set the summary writer for tensorboard """
         summary_logdir = os.path.join(self.trial_dir, 'summaries')
@@ -235,16 +233,23 @@ class Trainer:
         """ Set the optimizer and its parameters """
         params = [var[1] for var in self.model.named_parameters()]
         params_number = sum(p.numel() for p in params if p.requires_grad)
-        logging.info('Total trainable parameters of the model: %2.3f K.' % (params_number * 1e-3))
+        logging.info('Total trainable parameters of the model: %2.3f M.' % (params_number * 1e-6))
         optimizer = optim.Adam(params, lr=self.hyperparam_cfg['lr'])
         return optimizer
 
     def select_model(self):
         """ Selects the neural network architecture based on the desired configuration """
         vocab_size = len(self.tokenizer.vocab)
-        model = BigramLanguageModel(vocab_size=vocab_size).to(self.device)
-        model_name = model.__class__.__name__ if not self.cfg.model_name else self.cfg.model_name
-        logging.info(f'Selected model name: {model_name}')
+        if self.cfg.model_type == 'transformer':
+            model = TransformerDecoder(vocab_size=vocab_size, 
+                                       hyperparam_cfg=self.hyperparam_cfg,
+                                       device=self.device).to(self.device)
+        elif self.cfg.model_type == 'bigram':
+            model = BigramLanguageModel(vocab_size=vocab_size).to(self.device)
+        else:
+            raise ValueError(f"Model type '{self.cfg.model_type}' is not supported!")
+        model_name = model.__class__.__name__
+        logging.info(f'Selected model type: {self.cfg.model_type} with name: {model_name}')
         return model_name, model
 
     def select_tokenizer(self):

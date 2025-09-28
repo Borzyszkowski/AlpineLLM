@@ -65,9 +65,13 @@ def run_hyperparameter_search(cfg, cpus_per_trial=1, gpus_per_trial=1):
 
     # define the hyperparameters that have to be explored
     hyperparam_cfg = {
-        "lr": tune.grid_search([0.001]),
+        "lr": tune.grid_search([0.0003]),
         "batch_size": tune.grid_search([64]),
-        "context_len": tune.grid_search([8]),
+        "context_len": tune.grid_search([256]),
+        "embedding_dim": tune.grid_search([384]),
+        "num_heads": tune.grid_search([6]),
+        "num_layers": tune.grid_search([6]),
+        "dropout": tune.grid_search([0.2]),
     }
     logger.debug(f"hyperparam_cfg: {hyperparam_cfg}")
 
@@ -145,7 +149,7 @@ if __name__ == '__main__':
         'n_epochs': 10,
         'log_every_iteration': 10,
         'cuda_id': 0,
-        'model_name': None,
+        'model_type': 'transformer',
         'user_cfg_path': user_cfg_path,
         'project_root_path': cwd,
         'ray_trials_path': os.path.join(args.work_dir, args.expr_ID),
