@@ -7,12 +7,14 @@ import numpy as np
 import os
 import random
 import torch
+import unicodedata
 
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 from core.utils.utils import makepath
 from core.preprocessors.preprocessing_utils import np2torch, DotDict
+from core.preprocessors.tokenizers import CharacterLevelTokenizer
 
 
 class PreprocessorAlpine:
@@ -22,9 +24,10 @@ class PreprocessorAlpine:
         makepath(self.out_path)
 
         # read and preprocess the data file
-        input_files = os.path.join(self.inp_path, 'input.txt')
-        logging.info(f'Starting data preprocessing for the file: {input_file}')
-        data = self.data_preprocessing(input_file)
+        input_files = glob.glob(os.path.join(self.inp_path, '*.txt'))
+        concat_file = self.concat_files(input_files)
+        logging.info(f'Starting data preprocessing for the file: {concat_file}')
+        data = self.data_preprocessing(concat_file)
         
         # split data into train, test, val subsets
         splits = self.split_data(data)
@@ -33,6 +36,29 @@ class PreprocessorAlpine:
         self.export_data(splits)
 
         logging.info(f"Data preprocessed and exported to the location: {self.out_path}")
+
+    def concat_files(self, input_files):
+        """ Clean and concat all text files into a single file """
+        concat_file = os.path.join(self.out_path, 'consolidated_data.txt')
+        logging.info(f'Consolidating {len(input_files)} text files into a single file: {concat_file}')
+        with open(concat_file, 'w', encoding='utf-8') as outfile:
+            for fname in input_files:
+                with open(fname, 'r', encoding='utf-8-sig') as infile:
+                    text = infile.read()
+                    text = self.normalize_text(text)
+                    outfile.write(text + "\n")
+        return concat_file
+
+    def normalize_text(self, text):
+        """ Normalizes raw text by removing non-ASCII characters """
+        # Normalize Unicode characters
+        text = unicodedata.normalize('NFKD', text)
+        text = "".join([c for c in text if not unicodedata.combining(c)])
+        # Replace common “smart quotes” with ASCII equivalents
+        text = text.replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')
+        # Encode to ASCII, ignore errors, then back to str
+        text = text.encode("ascii", "ignore").decode("ascii")
+        return text
 
     def data_preprocessing(self, file_path):
         """ Processes a single text file with data """

@@ -7,6 +7,7 @@ class CharacterLevelTokenizer:
     """ A simple character-level tokenizer for text data. """
 
     def __init__(self):
+        """ Initializes the tokenizer by creating a vocabulary of unique characters """
         self.vocab = sorted(set(string.ascii_letters + string.digits + string.punctuation + " \n"))
         self.token_to_id = {token: idx for idx, token in enumerate(self.vocab)}
         self.id_to_token = {idx: token for idx, token in enumerate(self.vocab)}
