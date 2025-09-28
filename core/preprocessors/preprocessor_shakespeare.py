@@ -1,4 +1,4 @@
-"""" Preprocess raw data for deep learning experiments """
+"""" Preprocess raw Shakespeare data for deep learning experiments """
 
 import glob
 import json

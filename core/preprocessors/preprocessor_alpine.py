@@ -1,4 +1,4 @@
-"""" Preprocess raw data for deep learning experiments """
+"""" Preprocess raw Alpine data for deep learning experiments """
 
 import glob
 import json
@@ -6,13 +6,16 @@ import logging
 import numpy as np
 import os
 import random
+import re
 import torch
+import unicodedata
 
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 from core.utils.utils import makepath
 from core.preprocessors.preprocessing_utils import np2torch, DotDict
+from core.preprocessors.tokenizers import CharacterLevelTokenizer
 
 
 class PreprocessorAlpine:
@@ -21,113 +24,122 @@ class PreprocessorAlpine:
         self.out_path = cfg.out_path
         makepath(self.out_path)
 
-        logging.info('Starting data preprocessing!')
-
+        # read and preprocess the data file
+        input_files = glob.glob(os.path.join(self.inp_path, '*.txt'))
+        concat_file = self.concat_files(input_files)
+        logging.info(f'Starting data preprocessing for the file: {concat_file}')
+        data = self.data_preprocessing(concat_file)
+        
         # split data into train, test, val subsets
-        self.all_seqs = glob.glob(self.inp_path + '/*.json')
-        splits = self.split_data(sequences=self.all_seqs)
+        splits = self.split_data(data)
 
-        # preprocess the data
-        for split_name, split_sequences in splits.items():
-            logging.info(f'Processing data for the {split_name} split')
-            self.data_preprocessing(cfg, split_name, split_sequences)
-            logging.info(f'Processing for the {split_name} split finished!')
+        # serialize the data splits into .pt files on disk
+        self.export_data(splits)
 
-        logging.info(f'Splitted: {len(splits["train"])} train - {len(splits["test"])} test - {len(splits["val"])} val')
         logging.info(f"Data preprocessed and exported to the location: {self.out_path}")
 
-    def data_preprocessing(self, cfg, split_name, split_sequences):
-        """ Processes sequences of data for the given split """
-        for idx, sequence in enumerate(tqdm(split_sequences)):
-            logging.debug(f"Processing sequence {idx}: {sequence}")
+    def concat_files(self, input_files):
+        """ Clean and concat all text files into a single file """
+        concat_file = os.path.join(self.out_path, 'consolidated_data.txt')
+        logging.info(f'Consolidating {len(input_files)} text files into a single file: {concat_file}')
+        with open(concat_file, 'w', encoding='utf-8') as outfile:
+            for fname in input_files:
+                with open(fname, 'r', encoding='utf-8-sig') as infile:
+                    logging.info(f'Processing book: {fname}')
+                    text = infile.read()
+                    text = self.clean_text(text)
+                    text = self.normalize_text(text)
+                    outfile.write(text + "\n\n")
+        return concat_file
 
-            # read all lines of a sequence from a JSON file into a list
-            with open(sequence, 'r') as file:
-                content = file.readlines()
+    def normalize_text(self, text):
+        """ Normalizes raw text by removing non-ASCII characters """
+        # Normalize Unicode characters
+        text = unicodedata.normalize('NFKD', text)
+        text = "".join([c for c in text if not unicodedata.combining(c)])
+        # Replace common “smart quotes” with ASCII equivalents
+        text = text.replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')
+        # Encode to ASCII, ignore errors, then back to str
+        text = text.encode("ascii", "ignore").decode("ascii")
+        return text
 
-            # convert each line from JSON string to dictionary
-            seq_data = [json.loads(line) for line in content if line.strip()]
-            if len(seq_data) == 0:
-                logging.warning(f"Skipped empty JSON file for the sequence ID {idx} with path {sequence}")
-                continue
+    def clean_text(self, text):
+        """ Cleans raw text by removing unwanted sections, headers, footers, etc. """
+        start_pattern = r"\*\*\* START OF THE PROJECT GUTENBERG EBOOK (.*?) \*\*\*"
+        end_pattern = r"Transcriber[’']?s?\s+Note"
 
-            # run the trace scheduler for a single sequence
-            seq_data = self.extract_features(seq_data)
+        # find start marker
+        start_match = re.search(start_pattern, text, flags=re.IGNORECASE | re.DOTALL)
+        end_match   = re.search(end_pattern, text, flags=re.IGNORECASE | re.DOTALL)
 
-            # data has to be kept in np.float32 arrays as values
-            try:
-                for key, value in seq_data.items():
-                    try:
-                        seq_data[key] = np.array(value, dtype=np.float32)
-                    except Exception as e:
-                        logging.error(f"Error converting value for key {key}: {value}, Error: {e}")
-                        raise e 
-            except Exception as e:
-                logging.error(f"Skipping sequence {idx} due to an error: {e}")
-                logging.error(f"Full sequence name: {sequence}")
-                continue
+        # capture the title and start/end indices
+        title = start_match.group(1).strip()
+        start_idx = start_match.end()
+        end_idx = end_match.start()
 
-            # sequence has to be kept as a DotDict with np.float32 arrays as values
-            seq_data = {key: np.array(value, dtype=np.float32) for key, value in seq_data.items()}
-            seq_data = DotDict(seq_data)
+        logging.info(f'Cleaning text of the book: {title}')
+        cleaned_text = text[start_idx:end_idx].strip()
 
-            # make sure that all features have equal shape
-            seq_feat_lens = [value.shape[0] for value in seq_data.values()]
-            assert all(shape == seq_feat_lens[0] for shape in seq_feat_lens), f"Not all values have the same shape in seq {sequence}"
+        # trim everything before the title
+        pattern = re.compile(re.escape(title))
+        last_match = list(pattern.finditer(cleaned_text))[-1]
+        cleaned_text = cleaned_text[last_match.start():]
 
-            # save the results
-            out_dir = f"{idx:04d}_{os.path.basename(os.path.normpath(sequence)).split('.', 1)[0]}"
-            seq_out_dir = os.path.join(self.out_path, split_name, out_dir)
-            for data_name, data in seq_data.items():
-                data = np2torch(item={data_name: data})
-                outfname = makepath(os.path.join(seq_out_dir, '%s.pt' % data_name), isfile=True)
-                torch.save(data, outfname)
-            np.savez(os.path.join(seq_out_dir, 'frame_ids.npz'), frame_ids=list(seq_data.keys()))
+        # remove illustration blocks
+        cleaned_text = re.sub(r"\[Illustration:.*?\]", "", cleaned_text, flags=re.DOTALL)
+
+        # remove chapter headings and author credits
+        chapter_pattern = re.compile(r"\n\s*(?:CHAPTER\s+[IVXLCDM]+|[IVXLCDM]+\.)\s*\n[^\n]*\n(?:BY [^\n]+)?", flags=re.IGNORECASE)
+        cleaned_text = chapter_pattern.sub("\n", cleaned_text)
+
+        # remove footnotes and references
+        cleaned_text = re.sub(r"(?m)^\s*FOOTNOTES:\s*$", "", cleaned_text)
+        cleaned_text = re.sub(r"^\[\d+\][^\n]*(?:\n[^\[\n][^\n]*)*", "", cleaned_text, flags=re.MULTILINE)
+        return cleaned_text        
+
+    def data_preprocessing(self, file_path):
+        """ Processes a single text file with data """
+        with open(file_path, 'r', encoding='utf-8') as f:
+            text = f.read()
+        logging.info(f"Length of dataset in characters: {len(text)}")
+        logging.debug(f"The first 1000 characters: \n {text[:1000]}")
+
+        # very simple character-level tokenizer
+        tokenizer = CharacterLevelTokenizer()
+        logging.info(f"Vocabulary size: {len(tokenizer.vocab)}")
+        logging.debug(f"All the unique characters: {''.join(tokenizer.vocab)}")
+
+        # encode the entire text dataset and store it into a torch.Tensor
+        data = torch.tensor(tokenizer.encode(text), dtype=torch.long)
+        logging.info(f"Dataset shape: {data.shape} & Dataset type {data.dtype}")
+        logging.debug(f"The first 1000 characters tokenized: \n {data[:1000]}")
+        return data
             
-            # save the label file
-            # TODO: MOCK implement a way to extract labels
-            label = random.randint(0, 1)  # Placeholder for label extraction logic
-            np.savez(os.path.join(seq_out_dir, 'label.npz'), label=label)
-            with open(os.path.join(seq_out_dir, 'label.txt'), "w") as f: f.write(str(label))
-
-            # write auxiliary information
-            np.savez(os.path.join(seq_out_dir, "seq_path.npz"), seq_path=sequence)
-            with open(os.path.join(seq_out_dir, "seq_path.txt"), "w") as f: f.write(sequence)
-            
-    def split_data(self, sequences, train_size=0.8, test_size=0.1, val_size=0.1):
+    def split_data(self, data, train_size=0.8, test_size=0.1, val_size=0.1):
         """ Splits data into train/test/val sets """
         assert int(round(train_size + test_size + val_size)) == 1, 'Wrong train/test/val ratio!'
-        logging.info(f'Number of all sequences: {len(sequences)}')
+        logging.info(f'Number of all data samples (tokens): {len(data)}')
         logging.info(f'Splitting data into train/test/val with ratio {train_size}/{test_size}/{val_size}')
 
-        splits = {'train': [], 'test': [], 'val': []}
-        train, test = train_test_split(sequences, test_size=test_size, shuffle=False)
-        train, val = train_test_split(train, test_size=val_size, shuffle=False)
-        splits['train'].extend(train)
-        splits['test'].extend(test)
-        splits['val'].extend(val)
+        # do not shuffle the data to keep consistency of text
+        n = len(data)
+        train_end = int(train_size * n)
+        val_end = int((train_size + val_size) * n)
+        
+        splits = {
+            'train': data[:train_end],
+            'val': data[train_end:val_end],
+            'test': data[val_end:]
+        }
 
         logging.info(f'Splitted: {len(splits["train"])} train - {len(splits["test"])} test - {len(splits["val"])} val')
         return splits
 
-    def extract_features(self, json_objects):
-        """ 
-        Extract desired features from the JSON objects and return them as a dictionary.
-        """
-        extracted_sequence = {}
-        for json_object in json_objects:
-            logging.debug(f"Extracting features from the JSON {json_object}")
-
-            # Validate input type
-            if not isinstance(json_object, dict):
-                logging.error("Incoming frame is not a valid dictionary.")
-                continue
-
-            frame_id = json_object.get('frame_id')
-            if not frame_id:
-                logging.error("Frame ID is missing or invalid.")
-                continue
-
-            # TODO: MOCK add actual feature extraction logic here
-            extracted_sequence[frame_id] = range(96)
-        return extracted_sequence
+    def export_data(self, splits):
+        """ Exports the processed data for a each split as .pt file """
+        for split_name, split_data in splits.items():
+            logging.info(f'Exporting data for the split: {split_name}')
+            out_file = os.path.join(self.out_path, f'{split_name}', 'data_tensor.pt')
+            makepath(os.path.dirname(out_file))
+            torch.save(split_data, out_file)
+            logging.info(f'Exported {split_name} samples to {out_file}')

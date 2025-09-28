@@ -22,7 +22,7 @@ def parse_args():
                         help='The path to the folder to save the processed data.')
     parser.add_argument('--data-type', required=False, default='alpine', type=str, choices=['alpine', 'shakespeare'],
                         help='Type of the data to be processed among supported options.')
-    parser.add_argument('--process-id', required=False, default='P00', type=str,
+    parser.add_argument('--process-id', required=False, default='P01', type=str,
                         help='The appropriate ID for the processed data (folder name).')
     return parser.parse_args()
 

@@ -25,8 +25,8 @@ DATASET="${1:-alpine}"
 
 # URLs per dataset
 ALPINE_URLS=(
-    "https://www.gutenberg.org/cache/epub/56063/pg56063.txt" # Oxford Mountaineering Essays
     "https://www.gutenberg.org/cache/epub/69128/pg69128.txt" # The making of a mountaineer
+    "https://www.gutenberg.org/cache/epub/47209/pg47209.txt" # Hours of exercise in the Alps
 )
 SHAKESPEARE_URLS=(
     "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt"

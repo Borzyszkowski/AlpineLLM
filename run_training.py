@@ -118,11 +118,11 @@ def parse_args():
     parser = argparse.ArgumentParser(
                         prog = "Training",
                         description = "Run training pipeline.")
-    parser.add_argument("--data-path", required=False, default='./PREPROCESSED_DATA/P00', type=str,
+    parser.add_argument("--data-path", required=False, default='./PREPROCESSED_DATA/P01', type=str,
                         help = "The path to the directory that contains ready dataset for training.")
     parser.add_argument('--work-dir', required=False, default='./TRAINING_RESULTS', type=str,
                         help='The path to the working directory where the training results will be saved.')
-    parser.add_argument('--expr-ID', required=False, default='T00', type=str,
+    parser.add_argument('--expr-ID', required=False, default='T01', type=str,
                         help='Training ID')
     return parser.parse_args()
 
@@ -146,8 +146,8 @@ if __name__ == '__main__':
         'work_dir': os.path.join(args.work_dir, args.expr_ID),
         'load_weights_path': None,
         'try_num': 0,
-        'n_epochs': 10,
-        'log_every_iteration': 10,
+        'n_epochs': 1,
+        'log_every_iteration': 100,
         'cuda_id': 0,
         'model_type': 'transformer',
         'user_cfg_path': user_cfg_path,
