@@ -6,6 +6,7 @@ import logging
 import numpy as np
 import os
 import random
+import re
 import torch
 import unicodedata
 
@@ -44,9 +45,11 @@ class PreprocessorAlpine:
         with open(concat_file, 'w', encoding='utf-8') as outfile:
             for fname in input_files:
                 with open(fname, 'r', encoding='utf-8-sig') as infile:
+                    logging.info(f'Processing book: {fname}')
                     text = infile.read()
+                    text = self.clean_text(text)
                     text = self.normalize_text(text)
-                    outfile.write(text + "\n")
+                    outfile.write(text + "\n\n")
         return concat_file
 
     def normalize_text(self, text):
@@ -59,6 +62,40 @@ class PreprocessorAlpine:
         # Encode to ASCII, ignore errors, then back to str
         text = text.encode("ascii", "ignore").decode("ascii")
         return text
+
+    def clean_text(self, text):
+        """ Cleans raw text by removing unwanted sections, headers, footers, etc. """
+        start_pattern = r"\*\*\* START OF THE PROJECT GUTENBERG EBOOK (.*?) \*\*\*"
+        end_pattern = r"Transcriber[’']?s?\s+Note"
+
+        # find start marker
+        start_match = re.search(start_pattern, text, flags=re.IGNORECASE | re.DOTALL)
+        end_match   = re.search(end_pattern, text, flags=re.IGNORECASE | re.DOTALL)
+
+        # capture the title and start/end indices
+        title = start_match.group(1).strip()
+        start_idx = start_match.end()
+        end_idx = end_match.start()
+
+        logging.info(f'Cleaning text of the book: {title}')
+        cleaned_text = text[start_idx:end_idx].strip()
+
+        # trim everything before the title
+        pattern = re.compile(re.escape(title))
+        last_match = list(pattern.finditer(cleaned_text))[-1]
+        cleaned_text = cleaned_text[last_match.start():]
+
+        # remove illustration blocks
+        cleaned_text = re.sub(r"\[Illustration:.*?\]", "", cleaned_text, flags=re.DOTALL)
+
+        # remove chapter headings and author credits
+        chapter_pattern = re.compile(r"\n\s*(?:CHAPTER\s+[IVXLCDM]+|[IVXLCDM]+\.)\s*\n[^\n]*\n(?:BY [^\n]+)?", flags=re.IGNORECASE)
+        cleaned_text = chapter_pattern.sub("\n", cleaned_text)
+
+        # remove footnotes and references
+        cleaned_text = re.sub(r"(?m)^\s*FOOTNOTES:\s*$", "", cleaned_text)
+        cleaned_text = re.sub(r"^\[\d+\][^\n]*(?:\n[^\[\n][^\n]*)*", "", cleaned_text, flags=re.MULTILINE)
+        return cleaned_text        
 
     def data_preprocessing(self, file_path):
         """ Processes a single text file with data """
