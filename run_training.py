@@ -147,7 +147,7 @@ if __name__ == '__main__':
         'load_weights_path': None,
         'try_num': 0,
         'n_epochs': 1,
-        'log_every_iteration': 10,
+        'log_every_iteration': 100,
         'cuda_id': 0,
         'model_type': 'transformer',
         'user_cfg_path': user_cfg_path,
