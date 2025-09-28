@@ -120,7 +120,7 @@ class Trainer:
     def train(self, iter_num, ds_name='train'):
         """ Main training logic """
         self.model.train()
-        epoch_loss = []
+        interval_loss = []
 
         # Generate some example text to verify the model is working
         context = torch.zeros((1, 1), dtype=torch.long, device=self.device)
@@ -156,7 +156,7 @@ class Trainer:
 
             # Calculating gradients
             current_loss.backward()
-            epoch_loss.append(current_loss.item())
+            interval_loss.append(current_loss.item())
 
             # Update parameters
             self.optimizer.step()
@@ -165,14 +165,14 @@ class Trainer:
             if it % self.cfg.log_every_iteration == 0:
                 self.create_loss_message(current_loss, curr_iter, ds_name)
 
-        return self.compute_epoch_summary(ds_name, epoch_loss, epoch_num), curr_iter
+        return self.compute_interval_summary(ds_name, interval_loss, epoch_num), curr_iter
 
     @torch.no_grad()
     def evaluate(self, iter_num, ds_name='val'):
         """ Main evaluation logic for validation and testing of the model """
         data = self.ds_val if ds_name == 'val' else self.ds_test
         self.model.eval()
-        epoch_loss = []
+        interval_loss = []
 
         # Initialize the evaluator if a test set is used
         self.evaluator = EvaluatorLLM(self.tokenizer) if 'test' in ds_name else None
@@ -195,7 +195,7 @@ class Trainer:
 
                 # Calculate the loss function
                 current_loss = self.compute_loss(output_tensor, target_tensor)
-                epoch_loss.append(current_loss.item())
+                interval_loss.append(current_loss.item())
 
                 # Print information about the loss
                 if it % self.cfg.log_every_iteration == 0:
@@ -208,9 +208,9 @@ class Trainer:
             # Generate evaluation report at the end of the test set processing
             self.evaluator.gen_full_report(self.trial_dir, self.swriter) if 'test' in ds_name else None
 
-            return self.compute_epoch_summary(ds_name, epoch_loss, epoch_num)
+            return self.compute_interval_summary(ds_name, interval_loss, epoch_num)
 
-    def compute_epoch_summary(self, ds_name, epoch_loss, epoch_num):
+    def compute_interval_summary(self, ds_name, epoch_loss, epoch_num):
         """ Compute the epoch summary and save the report """
         epoch_loss = sum(epoch_loss) / len(epoch_loss)
         train.report({"mode": ds_name, "loss": epoch_loss, "epoch_num": epoch_num})
