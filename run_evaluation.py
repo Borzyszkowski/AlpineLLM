@@ -16,13 +16,13 @@ def parse_args():
     parser = argparse.ArgumentParser(
                         prog = "Evaluation (Inference Only)",
                         description = "Run evaluation pipeline.")
-    parser.add_argument("--data-path", required=False, default='./PREPROCESSED_DATA/P00', type=str,
+    parser.add_argument("--data-path", required=False, default='./PREPROCESSED_DATA/P01', type=str,
                         help = "Absolute path to the directory that contains ready dataset for evaluation.")
     parser.add_argument("--training-path", required=False, default='./TRAINING_RESULTS', type=str,
                         help = "Absolute path to the training experiment for evaluation.")
     parser.add_argument('--work-dir', required=False, default='./EVAL_RESULTS', type=str,
                         help='The path to the working directory where the evaluation results will be saved.')
-    parser.add_argument('--expr-ID', required=False, default='E00', type=str,
+    parser.add_argument('--expr-ID', required=False, default='E01', type=str,
                         help='Evaluation ID')
     return parser.parse_args()
 
