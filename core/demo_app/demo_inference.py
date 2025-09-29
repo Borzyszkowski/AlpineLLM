@@ -32,7 +32,7 @@ class AlpineLLMInference:
         # tokenize input
         input_ids = torch.tensor([self.tokenizer.encode(prompt)], device=self.device)
         # generate tokens
-        output_ids = self.model.generate(input_ids, max_new_tokens=cfg.max_new_tokens)
+        output_ids = self.model.generate(input_ids, max_new_tokens=self.cfg.max_new_tokens)
         # decode to string
         return self.tokenizer.decode(output_ids[0].tolist())
 
