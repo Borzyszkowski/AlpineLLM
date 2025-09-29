@@ -78,6 +78,7 @@ if __name__ == '__main__':
         'model_type': 'transformer',
         'user_cfg_path': user_cfg_path,
         'project_root_path': cwd,
+        'max_new_tokens': 500
     }
     config = Config(default_config, user_cfg_path)
     config.write_cfg(write_path=os.path.join(config.work_dir, 'demo_cfg.yml'))

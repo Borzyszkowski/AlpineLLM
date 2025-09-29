@@ -28,11 +28,11 @@ class AlpineLLMInference:
             logging.info(f"Generated Text:\n{generated_text}\n")
 
     @torch.no_grad()
-    def generate_text(self, prompt, max_new_tokens=500):
+    def generate_text(self, prompt):
         # tokenize input
         input_ids = torch.tensor([self.tokenizer.encode(prompt)], device=self.device)
         # generate tokens
-        output_ids = self.model.generate(input_ids, max_new_tokens=max_new_tokens)
+        output_ids = self.model.generate(input_ids, max_new_tokens=cfg.max_new_tokens)
         # decode to string
         return self.tokenizer.decode(output_ids[0].tolist())
 
