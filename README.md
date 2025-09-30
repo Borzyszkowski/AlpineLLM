@@ -17,13 +17,14 @@ Please use a Python virtual environment to install the dependencies:
 - Download dataset
 
     The dataset consists of raw text corpora, including public-domain literature related to alpinism. It is based on several books available through Project Gutenberg and can be downloaded using the provided script:
+
     ```
     bash core/utils/download_dataset.sh
     ```
 
 - Pre-processing
 
-    The repository provides offline pre-processing stage that aims to serialize data to speed up training. Please refer to the pre-processing config file for more details.
+    The repository provides offline pre-processing stage that aims to serialize data to speed up training. Program parameters can be specified in the pre-processing config file.
     
     To start the pre-processing, please run:
     ```
@@ -32,7 +33,7 @@ Please use a Python virtual environment to install the dependencies:
 
 - Training
 
-    The repository provides a comprehensive training program allowing to schedule multiple training experiments with hyperparameter search. Please refer to the training config file for more details.
+    The repository provides a comprehensive training program allowing to schedule multiple training experiments with hyperparameter search. Program parameters can be specified in the training config file.
     
     To start the training, please run:
     ```
@@ -41,11 +42,20 @@ Please use a Python virtual environment to install the dependencies:
 
 - Evaluation (offline, inference-only)
 
-    The repository provides an evaluation program to quickly test the models. It allows to read the model's checkpoint and evaluate it on a desired test set. Please refer to the evaluation config file for more details.
+    The repository provides an evaluation program to quickly test the models. It allows to read the model's checkpoint and evaluate it on a desired test set. Program parameters can be specified in the evaluation config file.
     
     To start the evaluation, please run:
     ```
     python3 run_evaluation.py
+    ```
+
+- Demo application (text generation)
+
+    The repository provides a demo program which allows to use the language model for text generation. It loads the model's checkpoint and allows the user to type the input prompt for completion by the model. Program parameters can be specified in the demo config file.
+
+    To start the demo, please run:
+    ```
+    python3 run_demo.py
     ```
 
 ### How to run unit tests?
