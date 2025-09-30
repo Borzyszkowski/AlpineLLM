@@ -49,7 +49,7 @@ Please use a Python virtual environment to install the dependencies:
     python3 run_evaluation.py
     ```
 
-- Demo application (text generation)
+- Demo program (text generation)
 
     The repository provides a demo program which allows to use the language model for text generation. It loads the model's checkpoint and allows the user to type the input prompt for completion by the model. Program parameters can be specified in the demo config file.
 
