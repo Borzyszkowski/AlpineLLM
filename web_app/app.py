@@ -4,8 +4,20 @@ import gradio as gr
 import os
 import torch
 
+from huggingface_hub import hf_hub_download
+
 from demo_inference import AlpineLLMInference
 from config_util import Config
+
+
+def download_model(cfg):
+    """ Download the model weights from Hugging Face Hub """
+    model_path = hf_hub_download(
+        repo_id=cfg.repo_id, 
+        filename=cfg.model_name, 
+        cache_dir="./model-cache"
+    )
+    return model_path
 
 
 def start_app():
@@ -42,29 +54,15 @@ def start_app():
     app.launch(server_name="0.0.0.0", server_port=7860)
 
 
-# def start_app():
-#     """ Start the web app via Gradio """
-#     app = gr.Interface(
-#         fn=inference.generate_text,
-#         inputs=[
-#             gr.Textbox(lines=3, placeholder="Type your alpine prompt..."),
-#             gr.Slider(50, 1000, value=200, step=10, label="Max tokens"),
-#         ],
-#         outputs=gr.Textbox(),
-#         title="AlpineLLM Demo",
-#         description="A domain-specific language model for alpine storytelling.",
-#     )
-#     app.launch(server_name="0.0.0.0", server_port=7860)
-
-
 if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
     # Define the configuration
     cfg = {
-        'load_weights_path': "model/best_model",
         'cuda_id': 0,
         'model_type': 'transformer',
+        'repo_id': "Borzyszkowski/AlpineLLM-model",
+        'model_name': "best_model",
     }
     cfg = Config(cfg)
 
@@ -78,6 +76,9 @@ if __name__ == '__main__':
         "lr": 3e-4,
     }
     hyperparam_cfg = Config(hyperparam_cfg)
+
+    # Ensure model weights are available
+    cfg.load_weights_path = download_model(cfg)
 
     # Start the application
     inference = AlpineLLMInference(cfg, hyperparam_cfg)
