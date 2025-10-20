@@ -72,6 +72,10 @@ Please use a Python virtual environment to install the dependencies:
     python3 run_deployment.py
     ```
 
+    Live web demo of AlpineLLM at Hugging Face Spaces is developed as a separate repository:
+    
+    [https://huggingface.co/spaces/Borzyszkowski/AlpineLLM-App](https://huggingface.co/spaces/Borzyszkowski/AlpineLLM-App)  
+
 ### How to run unit tests?
 
 Apart from the end-to-end data processing pipelines, it is possible to execute each component of the pipeline in a modular, indepentent way.
