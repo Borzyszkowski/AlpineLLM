@@ -2,12 +2,12 @@
 
 A domain-specific language model for alpine storytelling.
 
-Try asking about mountain adventures! 🧗🏻
+Try asking about mountain adventures! ❄️
 
 ### Related Repositories
 
 - [**🤗 AlpineLLM Model Weights @ HuggingFace**](https://huggingface.co/Borzyszkowski/AlpineLLM-Model)
-- [**🏔️ AlpineLLM Live Demo @ HuggingFace Spaces**](https://huggingface.co/spaces/Borzyszkowski/AlpineLLM-App)
+- [**⛏️ AlpineLLM Live Demo @ HuggingFace Spaces**](https://huggingface.co/spaces/Borzyszkowski/AlpineLLM-App)
 
 ### How to install?
 
