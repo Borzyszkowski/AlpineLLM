@@ -5,7 +5,7 @@ import json
 import logging
 import os
 
-from core.demo_app.demo_inference import AlpineLLMInference
+from core.demo_program.demo_inference import AlpineLLMInference
 from core.utils.utils import Config, makelogger
 
 
