@@ -1,4 +1,0 @@
-gradio==5.47.2
-huggingface-hub==0.35.3
-pyyaml==6.0.2
-torch==2.4.1
