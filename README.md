@@ -2,7 +2,7 @@
 
 A domain-specific language model for alpine storytelling.
 
-Try asking about mountain adventures! ❄️
+Try asking about mountain adventures! 🏔️
 
 ### Related Repositories
 
