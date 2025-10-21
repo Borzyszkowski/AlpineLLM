@@ -17,13 +17,13 @@ AlpineLLM is a lightweight base language model pre-trained from scratch on raw t
 
 This repository contains the source code for all stages of the model's development pipeline, including data preparation, training, evaluation, and deployment.
 
-Currently supported version of the model: **AlpineLLM Tiny 10M**
+Currently supported version of the model: **AlpineLLM-Tiny-10M-Base**
 
 Pre-trained model weights and an interactive live demo are available in the related repositories listed below.
 
 ### Related Repositories
 
-- [**🤗 AlpineLLM Model Weights @ HuggingFace**](https://huggingface.co/Borzyszkowski/AlpineLLM-Model)
+- [**🤗 AlpineLLM Model Weights @ HuggingFace**](https://huggingface.co/Borzyszkowski/AlpineLLM-Tiny-10M-Base)
 - [**⛏️ AlpineLLM Live Demo @ HuggingFace Spaces**](https://huggingface.co/spaces/Borzyszkowski/AlpineLLM-App)
 
 ### How to install?
