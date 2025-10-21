@@ -16,7 +16,7 @@ def parse_args():
                         prog = "Deployment to Hugging Face Model Hub")
     parser.add_argument("--model-path", required=False, default='./TRAINING_RESULTS/best_model.pt', type=str,
                         help = "Path to the resulting model artifact in the PyTorch format.")
-    parser.add_argument("--repo-id", required=False, default='Borzyszkowski/AlpineLLM-model', type=str,
+    parser.add_argument("--repo-id", required=False, default='Borzyszkowski/AlpineLLM-Tiny-10M-Base', type=str,
                         help = "ID of the repository on Hugging Face Hub where the model will be deployed.")
     return parser.parse_args()
 
