@@ -11,9 +11,7 @@
     </h4>  
 </p>
 
-<figure class="centered long-image">
-    <img src="assets/background.jpg" alt="AlpineLLM" style="border-radius: 15px;"/> 
-</figure>
+<img src="assets/background_round.png" alt="AlpineLLM" style="border-radius: 15px;"/> 
 
 ## About AlpineLLM
 
