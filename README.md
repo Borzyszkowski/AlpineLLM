@@ -21,7 +21,7 @@ This repository contains the source code for all stages of the model's developme
 
 Currently supported version of the model: **AlpineLLM-Tiny-10M-Base**
 
-Model page with pre-trained weights and an interactive live demo are available in the related repositories listed below.
+Pre-trained model weights and an interactive live demo are available in the related repositories listed below.
 
 ### Related Repositories
 
