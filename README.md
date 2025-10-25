@@ -1,11 +1,32 @@
-# AlpineLLM
+<p align="center">
+    <h1 align="center">AlpineLLM</h1>
+    <h4 align="center">
+        A domain-specific language model for alpine storytelling.
+        <br><br>
+        Try asking about mountain adventures! 🏔️
+    </h4>
+    <h4 align="center">
+        <strong>Author:</strong> 
+        <a href="https://borzyszkowski.github.io/">Bartek Borzyszkowski</a> 
+    </h4>  
+</p>
 
-A domain-specific language model for alpine storytelling.
+<img src="assets/background_round.png" alt="AlpineLLM" style="border-radius: 15px;"/> 
+
+## About AlpineLLM
+
+AlpineLLM is a lightweight base language model pre-trained from scratch on raw text corpora drawn primarily from public-domain literature on alpinism.
+
+This repository contains the source code for all stages of the model's development pipeline, including data preparation, training, evaluation, and deployment.
+
+Currently supported version of the model: **AlpineLLM-Tiny-10M-Base**
+
+Pre-trained model weights and an interactive live demo are available in the related repositories listed below.
 
 ### Related Repositories
 
-- [**🤗 AlpineLLM Model Weights @ HuggingFace**](https://huggingface.co/Borzyszkowski/AlpineLLM-Model)
-- [**🚀 AlpineLLM Live Demo @ HuggingFace Spaces**](https://huggingface.co/spaces/Borzyszkowski/AlpineLLM-App)
+- [**🤗 AlpineLLM Model Page @ HuggingFace**](https://huggingface.co/Borzyszkowski/AlpineLLM-Tiny-10M-Base)
+- [**⛏️ AlpineLLM Live Demo @ HuggingFace Spaces**](https://huggingface.co/spaces/Borzyszkowski/AlpineLLM-App)
 
 ### How to install?
 

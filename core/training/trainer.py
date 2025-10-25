@@ -114,7 +114,7 @@ class Trainer:
 
         # Export the model to ONNX format if required
         if self.cfg.export_onnx:
-            self.export_to_onnx(onnx_path=f'{self.model_path}_model.onnx')
+            self.export_to_onnx(onnx_path=f'{self.model_path}.onnx')
 
     def train(self, epoch_num, ds_name='train'):
         """ Main training logic """
@@ -286,7 +286,7 @@ class Trainer:
         checkpoint_dir = os.path.join(self.trial_dir, f"checkpoints")
         if not os.path.exists(checkpoint_dir):
             os.makedirs(checkpoint_dir)
-        self.model_path = os.path.join(checkpoint_dir, f"checkpoint_epoch_{epoch_num}")
+        self.model_path = os.path.join(checkpoint_dir, f"checkpoint_epoch_{epoch_num}.pt")
         torch.save((self.model.state_dict(), self.optimizer.state_dict()), self.model_path)
         with open(os.path.join(train.get_context().get_trial_dir(), "best_checkpoint_path.txt"), "w") as f:
             f.write(self.model_path + "\n")
