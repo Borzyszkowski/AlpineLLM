@@ -11,6 +11,10 @@
     </h4>  
 </p>
 
+<figure class="centered long-image">
+    <img src="assets/background.jpg" alt="AlpineLLM" style="border-radius: 15px;"/> 
+</figure>
+
 ## About AlpineLLM
 
 AlpineLLM is a lightweight base language model pre-trained from scratch on raw text corpora drawn primarily from public-domain literature on alpinism.
@@ -19,11 +23,11 @@ This repository contains the source code for all stages of the model's developme
 
 Currently supported version of the model: **AlpineLLM-Tiny-10M-Base**
 
-Pre-trained model weights and an interactive live demo are available in the related repositories listed below.
+Model page with pre-trained weights and an interactive live demo are available in the related repositories listed below.
 
 ### Related Repositories
 
-- [**🤗 AlpineLLM Model Weights @ HuggingFace**](https://huggingface.co/Borzyszkowski/AlpineLLM-Tiny-10M-Base)
+- [**🤗 AlpineLLM Model Page @ HuggingFace**](https://huggingface.co/Borzyszkowski/AlpineLLM-Tiny-10M-Base)
 - [**⛏️ AlpineLLM Live Demo @ HuggingFace Spaces**](https://huggingface.co/spaces/Borzyszkowski/AlpineLLM-App)
 
 ### How to install?
