@@ -56,7 +56,7 @@ def training(cfg, hyperparam_cfg=None):
     trainer.fit()
 
 
-def run_hyperparameter_search(cfg, cpus_per_trial=1, gpus_per_trial=1):
+def run_hyperparameter_search(cfg):
     """ Runs a hyperparameter search using Ray, which starts parallel trainings """
     logger.info("Running the training experiment")
     logger.debug(f"cfg: {cfg}")
@@ -88,7 +88,7 @@ def run_hyperparameter_search(cfg, cpus_per_trial=1, gpus_per_trial=1):
     # run a single training procedure
     result = tune.run(
         partial(training, cfg),
-        resources_per_trial={"cpu": cpus_per_trial, "gpu": gpus_per_trial},
+        resources_per_trial={"cpu": cfg.cpus_per_trial, "gpu": cfg.gpus_per_trial},
         config=hyperparam_cfg,
         num_samples=cfg.num_trials,
         scheduler=scheduler,
@@ -124,6 +124,8 @@ def parse_args():
                         help='The path to the working directory where the training results will be saved.')
     parser.add_argument('--expr-ID', required=False, default='T01', type=str,
                         help='Training ID')
+    parser.add_argument('--cfg-path', required=False, default='configs/training_cfg.yml', type=str,
+                        help='Path to the user config file to overwrites the default configuration.')
     return parser.parse_args()
 
 
@@ -137,7 +139,7 @@ if __name__ == '__main__':
         args.work_dir = os.path.abspath(os.path.join(cwd, args.work_dir)) 
 
     # Define the experiment configuration (user config overwrites default)
-    user_cfg_path = os.path.join(cwd, 'configs/training_cfg.yml')
+    user_cfg_path = os.path.join(cwd, args.cfg_path)
     default_config = {
         'n_workers': 10,
         'use_multigpu': False,
@@ -149,6 +151,8 @@ if __name__ == '__main__':
         'n_epochs': 1,
         'log_every_iteration': 100,
         'cuda_id': 0,
+        'cpus_per_trial': 1,
+        'gpus_per_trial': 1,
         'model_type': 'transformer',
         'user_cfg_path': user_cfg_path,
         'project_root_path': cwd,

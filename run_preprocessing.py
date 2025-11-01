@@ -24,6 +24,8 @@ def parse_args():
                         help='Type of the data to be processed among supported options.')
     parser.add_argument('--process-id', required=False, default='P01', type=str,
                         help='The appropriate ID for the processed data (folder name).')
+    parser.add_argument('--cfg-path', required=False, default='configs/preprocessing_cfg.yml', type=str,
+                        help='Path to the user config file to overwrites the default configuration.')
     return parser.parse_args()
 
 
@@ -33,7 +35,7 @@ if __name__ == '__main__':
     cwd = os.getcwd()
 
     # Define the experiment configuration (user config overwrites default)
-    user_cfg_path = os.path.join(cwd, 'configs/preprocessing_cfg.yml')
+    user_cfg_path = os.path.join(cwd, args.cfg_path)
     default_config = {
         'data_type': args.data_type,
         'inp_path': os.path.join(args.inp_path, args.data_type),

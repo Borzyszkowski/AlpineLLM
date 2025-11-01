@@ -20,6 +20,8 @@ def parse_args():
                         help='The path to the working directory where the demo results will be saved.')
     parser.add_argument('--expr-ID', required=False, default='D01', type=str,
                         help='Demo ID')
+    parser.add_argument('--cfg-path', required=False, default='configs/demo_cfg.yml', type=str,
+                        help='Path to the user config file to overwrites the default configuration.')
     return parser.parse_args()
 
 
@@ -69,7 +71,7 @@ if __name__ == '__main__':
         exit(1)
 
     # Define the experiment configuration (user config overwrites default)
-    user_cfg_path = os.path.join(cwd, 'configs/demo_cfg.yml')
+    user_cfg_path = os.path.join(cwd, args.cfg_path)
     default_config = {
         'expr_ID': args.expr_ID,
         'work_dir': os.path.join(args.work_dir, args.expr_ID),
