@@ -29,3 +29,6 @@ jobs:
       - name: Run evaluation
         run: |
           python run_evaluation.py
+      - name: Run demo (with 10s timeout)
+        run: |
+          timeout 10s python run_demo.py
