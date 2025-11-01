@@ -1,4 +1,4 @@
-name: AlpineLLM - Full Pipeline
+name: AlpineLLM - Integration Tests
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: ['*']
 
 jobs:
-  full-pipeline:
+  integration-tests:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
