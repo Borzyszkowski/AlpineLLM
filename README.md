@@ -99,9 +99,9 @@ Please use a Python virtual environment to install the dependencies:
 
 ### How to run unit tests?
 
-Apart from the end-to-end data processing pipelines, it is possible to execute each component of the pipeline in a modular, indepentent way.
+This repository uses GitHub Actions for automated testing and continous integration. 
 
-We provide several unit tests that allow to quickly start and test the key components:
+In addition to end-to-end pipelines, individual components can be started and tested independently:
 
 - <b>Data loader unit test</b>
 
