@@ -11,7 +11,7 @@ jobs:
   # Pre-processing job
   # ==========================
   pre-processing:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       
@@ -28,7 +28,7 @@ jobs:
   # Training job
   # ==========================
   training:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: pre-processing
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
   # Evaluation job
   # ==========================
   evaluation:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [training, pre-processing]
     steps:
       - uses: actions/checkout@v4
