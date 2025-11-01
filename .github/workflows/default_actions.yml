@@ -43,7 +43,7 @@ jobs:
 
       - name: Run training
         run: |
-          python run_training.py
+          python run_training.py --cfg-path configs/training_github_actions_cfg.yml
 
   # ==========================
   # Evaluation job

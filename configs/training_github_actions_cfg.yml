@@ -1,0 +1,2 @@
+cpus_per_trial: 1
+gpus_per_trial: 0
