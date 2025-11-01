@@ -1,35 +1,31 @@
-""" Run the Evaluation (Inference Only) procedure """
+""" Run the demo application """
 
 import argparse
 import json
 import logging
 import os
 
-from tqdm import tqdm
-
+from core.demo_program.demo_inference import AlpineLLMInference
 from core.utils.utils import Config, makelogger
-from core.training.trainer import Trainer
 
 
 def parse_args():
     """ Parse command line arguments """
     parser = argparse.ArgumentParser(
-                        prog = "Evaluation (Inference Only)",
-                        description = "Run evaluation pipeline.")
-    parser.add_argument("--data-path", required=False, default='./PREPROCESSED_DATA/P01', type=str,
-                        help = "Absolute path to the directory that contains ready dataset for evaluation.")
-    parser.add_argument("--training-path", required=False, default='./TRAINING_RESULTS', type=str,
-                        help = "Absolute path to the training experiment for evaluation.")
-    parser.add_argument('--work-dir', required=False, default='./EVAL_RESULTS', type=str,
-                        help='The path to the working directory where the evaluation results will be saved.')
-    parser.add_argument('--expr-ID', required=False, default='E01', type=str,
-                        help='Evaluation ID')
+                        prog = "Demo",
+                        description = "Run demo pipeline.")
+    parser.add_argument("--training-path", required=False, default='./TRAINING_RESULTS/T01', type=str,
+                        help = "Absolute path to the training experiment to load.")
+    parser.add_argument('--work-dir', required=False, default='./DEMO_RESULTS', type=str,
+                        help='The path to the working directory where the demo results will be saved.')
+    parser.add_argument('--expr-ID', required=False, default='D01', type=str,
+                        help='Demo ID')
     return parser.parse_args()
 
 
-def run_evaluation(cfg):
-    """ Runs the evaluation experiment with given configurations """
-    logging.info("Running offline evaluation on test data")
+def run_demo(cfg):
+    """ Runs the demo experiment with given configurations """
+    logging.info(f"Running demo ecperiment for the model type: {cfg.model_type}")
     logging.info(f"Selected model: {cfg.load_weights_path}")
     os.chdir(cfg.project_root_path)
 
@@ -46,11 +42,11 @@ def run_evaluation(cfg):
     logging.debug(f"hyperparam_cfg: {hyperparam_cfg}")
     logging.debug(f"cfg: {cfg}")
 
-    # run the evaluation using inference_only flag
-    evaluator = Trainer(cfg=cfg, hyperparam_cfg=hyperparam_cfg, inference_only=True)
-    evaluator.evaluate(epoch_num=1, ds_name="test")
+    # run the demo application using inference wrapper
+    demo_inference = AlpineLLMInference(cfg=cfg, hyperparam_cfg=hyperparam_cfg)
+    demo_inference.run_demo()
 
-    logging.info(f"Completed evaluation for the model: {cfg.load_weights_path}")
+    logging.info(f"Completed demo app for the model: {cfg.load_weights_path}")
     logging.info(f"Results available in the output directory {cfg.work_dir}")
 
 
@@ -73,25 +69,20 @@ if __name__ == '__main__':
         exit(1)
 
     # Define the experiment configuration (user config overwrites default)
-    user_cfg_path = os.path.join(cwd, 'configs/evaluation_cfg.yml')
+    user_cfg_path = os.path.join(cwd, 'configs/demo_cfg.yml')
     default_config = {
-        'dataset_dir': args.data_path,
         'expr_ID': args.expr_ID,
         'work_dir': os.path.join(args.work_dir, args.expr_ID),
-        'trial_dir': os.path.join(args.work_dir, args.expr_ID),
+        'load_weights_path': load_weights_path,
         'cuda_id': 0,
-        'try_num': 0,
-        'use_multigpu': False,
-        'n_workers': 10,
-        'log_every_iteration': 10,
         'model_type': 'transformer',
         'user_cfg_path': user_cfg_path,
         'project_root_path': cwd,
-        'load_weights_path': load_weights_path,
+        'max_new_tokens': 500
     }
     config = Config(default_config, user_cfg_path)
-    config.write_cfg(write_path=os.path.join(config.work_dir, 'evaluation_cfg.yml'))
+    config.write_cfg(write_path=os.path.join(config.work_dir, 'demo_cfg.yml'))
     logger = makelogger(os.path.join(config.work_dir, "logs.txt"))
-
-    # Run a single evaluation experiment
-    run_evaluation(config)
+    
+    # Run a single demo experiment
+    run_demo(config)
