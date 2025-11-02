@@ -3,4 +3,4 @@ gpus_per_trial: 0
 train_iters: 10
 val_iters: 2
 log_every_iteration: 1
-val_every_iteration': 5
+val_every_iteration: 5
