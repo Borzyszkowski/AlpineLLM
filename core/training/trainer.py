@@ -59,7 +59,8 @@ class Trainer:
 
         # load data for each subset (assuming it has been preprocessed)
         self.ds_train, self.ds_test = self.load_data()
-        self.train_iterator, self.test_iterator = iter(self.ds_train), iter(self.ds_test)
+        self.test_iterator = iter(self.ds_test)
+        self.train_iterator = None if self.inference_only else iter(self.ds_train)
 
     def fit(self):
         """ Main logic, in which the model is trained and evaluated """
