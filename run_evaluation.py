@@ -40,7 +40,6 @@ def run_evaluation(cfg):
         exit(1)
     with open(params_file, 'r') as file:
         hyperparam_cfg = json.load(file)
-        hyperparam_cfg["batch_size"] = 1
     hyperparam_cfg = Config(hyperparam_cfg)
     hyperparam_cfg.write_cfg(os.path.join(cfg.work_dir, f'hyperparam_cfg.yml'))
     logging.debug(f"hyperparam_cfg: {hyperparam_cfg}")
