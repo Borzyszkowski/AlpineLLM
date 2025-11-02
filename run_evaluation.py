@@ -16,9 +16,9 @@ def parse_args():
     parser = argparse.ArgumentParser(
                         prog = "Evaluation (Inference Only)",
                         description = "Run evaluation pipeline.")
-    parser.add_argument("--data-path", required=False, default='./PREPROCESSED_DATA/P01', type=str,
+    parser.add_argument("--data-path", required=False, default='./PREPROCESSED_DATA/P02', type=str,
                         help = "Absolute path to the directory that contains ready dataset for evaluation.")
-    parser.add_argument("--training-path", required=False, default='./TRAINING_RESULTS', type=str,
+    parser.add_argument("--training-path", required=False, default='./TRAINING_RESULTS/T01', type=str,
                         help = "Absolute path to the training experiment for evaluation.")
     parser.add_argument('--work-dir', required=False, default='./EVAL_RESULTS', type=str,
                         help='The path to the working directory where the evaluation results will be saved.')
@@ -48,7 +48,7 @@ def run_evaluation(cfg):
 
     # run the evaluation using inference_only flag
     evaluator = Trainer(cfg=cfg, hyperparam_cfg=hyperparam_cfg, inference_only=True)
-    evaluator.evaluate(epoch_num=1, ds_name="test")
+    evaluator.evaluate(global_iter=1, ds_name="test")
 
     logging.info(f"Completed evaluation for the model: {cfg.load_weights_path}")
     logging.info(f"Results available in the output directory {cfg.work_dir}")
