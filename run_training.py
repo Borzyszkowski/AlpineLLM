@@ -80,8 +80,8 @@ def run_hyperparameter_search(cfg, cpus_per_trial=1, gpus_per_trial=1):
         time_attr='iter',
         metric="loss",
         mode="min",
-        max_t=cfg.n_epochs,
-        grace_period=cfg.n_epochs // 10 + 1,
+        max_t=cfg.train_iters,
+        grace_period=cfg.train_iters // 10 + 1,
         reduction_factor=2
     )
 
@@ -146,8 +146,10 @@ if __name__ == '__main__':
         'work_dir': os.path.join(args.work_dir, args.expr_ID),
         'load_weights_path': None,
         'try_num': 0,
-        'n_epochs': 1,
-        'log_every_iteration': 100,
+        'train_iters': 15000,
+        'val_iters': 500,
+        'log_every_iteration': 10,
+        'val_every_iteration': 1000,
         'cuda_id': 0,
         'model_type': 'transformer',
         'user_cfg_path': user_cfg_path,

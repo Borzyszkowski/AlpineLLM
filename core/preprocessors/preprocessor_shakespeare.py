@@ -53,24 +53,22 @@ class PreprocessorShakespeare:
         logging.debug(f"The first 1000 characters tokenized: \n {data[:1000]}")
         return data
             
-    def split_data(self, data, train_size=0.8, test_size=0.1, val_size=0.1):
-        """ Splits data into train/test/val sets """
-        assert int(round(train_size + test_size + val_size)) == 1, 'Wrong train/test/val ratio!'
+    def split_data(self, data, train_size=0.9, test_size=0.1):
+        """ Splits data into train/test sets """
+        assert int(round(train_size + test_size)) == 1, 'Wrong train/test ratio!'
         logging.info(f'Number of all data samples (tokens): {len(data)}')
-        logging.info(f'Splitting data into train/test/val with ratio {train_size}/{test_size}/{val_size}')
+        logging.info(f'Splitting data into train/test with ratio {train_size}/{test_size}')
 
         # do not shuffle the data to keep consistency of text
         n = len(data)
         train_end = int(train_size * n)
-        val_end = int((train_size + val_size) * n)
         
         splits = {
             'train': data[:train_end],
-            'val': data[train_end:val_end],
-            'test': data[val_end:]
+            'test': data[train_end:]
         }
 
-        logging.info(f'Splitted: {len(splits["train"])} train - {len(splits["test"])} test - {len(splits["val"])} val')
+        logging.info(f'Splitted: {len(splits["train"])} train - {len(splits["test"])} test')
         return splits
 
     def export_data(self, splits):
