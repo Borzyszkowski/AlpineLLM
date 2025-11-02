@@ -160,7 +160,11 @@ class Trainer:
             # Print information about the loss
             if global_iter % self.cfg.log_every_iteration == 0:
                 self.create_loss_message(current_loss, global_iter, ds_name)
+            
+            # Update the global iteration count
             global_iter += 1
+            if global_iter >= self.cfg.train_iters:
+                break
 
         return self.compute_interval_summary(ds_name, interval_loss, global_iter), global_iter
 
