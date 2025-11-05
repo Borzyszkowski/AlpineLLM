@@ -22,7 +22,7 @@ jobs:
           bash core/utils/download_dataset.sh
       - name: Run pre-processing
         run: |
-          python run_preprocessing.py
+          python run_preprocessing.py --cfg-path configs/preprocessing_github_actions_cfg.yml
       - name: Run training
         run: |
           python run_training.py --cfg-path configs/training_github_actions_cfg.yml

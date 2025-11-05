@@ -40,6 +40,8 @@ if __name__ == '__main__':
         'data_type': args.data_type,
         'inp_path': os.path.join(args.inp_path, args.data_type),
         'out_path': os.path.join(args.out_path, args.process_id),
+        'train_size': 0.9,
+        'test_size': 0.1
     }
     cfg = Config(default_config, user_cfg_path)
     cfg.write_cfg(write_path=os.path.join(cfg.out_path, 'preprocessing_cfg.yml'))
