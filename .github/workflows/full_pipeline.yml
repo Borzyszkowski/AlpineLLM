@@ -22,13 +22,13 @@ jobs:
           bash core/utils/download_dataset.sh
       - name: Run pre-processing
         run: |
-          python run_preprocessing.py --cfg-path configs/preprocessing_github_actions_cfg.yml
+          python run_preprocessing.py --cfg-path configs/ci_configs/ci_preprocessing_cfg.yml
       - name: Run training
         run: |
-          python run_training.py --cfg-path configs/training_github_actions_cfg.yml
+          python run_training.py --cfg-path configs/ci_configs/ci_training_cfg.yml
       - name: Run evaluation
         run: |
           python run_evaluation.py
       - name: Run demo (with 10s timeout)
         run: |
-          timeout 10s python run_demo.py
+          timeout 10s python run_demo.py --cfg-path configs/ci_configs/ci_demo_cfg.yml

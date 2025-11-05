@@ -46,7 +46,7 @@ def run_demo(cfg):
 
     # run the demo application using inference wrapper
     demo_inference = AlpineLLMInference(cfg=cfg, hyperparam_cfg=hyperparam_cfg)
-    demo_inference.run_demo()
+    demo_inference.run_demo(cfg.test_prompt)
 
     logging.info(f"Completed demo app for the model: {cfg.load_weights_path}")
     logging.info(f"Results available in the output directory {cfg.work_dir}")
@@ -80,7 +80,8 @@ if __name__ == '__main__':
         'model_type': 'transformer',
         'user_cfg_path': user_cfg_path,
         'project_root_path': cwd,
-        'max_new_tokens': 500
+        'max_new_tokens': 500,
+        'test_prompt': None
     }
     config = Config(default_config, user_cfg_path)
     config.write_cfg(write_path=os.path.join(config.work_dir, 'demo_cfg.yml'))
