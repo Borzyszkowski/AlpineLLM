@@ -17,15 +17,21 @@ class AlpineLLMInference:
         self.model = self.select_model()
         self.get_model(cfg.load_weights_path)
 
-    def run_demo(self):
+    def run_demo(self, prompt=None):
         """ Run a simple demo loop to generate text based on user input """
+
+        # Non-interactive mode (example for CI jobs)
+        if prompt is not None:
+            logging.info(f"Prompt: {prompt}")
+            logging.info(f"Generated Text:\n{self.generate_text(prompt)}\n")
+            return
+
         while True:
             prompt = input("Enter a prompt (or 'exit' to quit): ")
             if prompt.lower() == 'exit':
                 logging.info("Exiting the demo.")
                 break
-            generated_text = self.generate_text(prompt)
-            logging.info(f"Generated Text:\n{generated_text}\n")
+            logging.info(f"Generated Text:\n{self.generate_text(prompt)}\n")
 
     @torch.no_grad()
     def generate_text(self, prompt):

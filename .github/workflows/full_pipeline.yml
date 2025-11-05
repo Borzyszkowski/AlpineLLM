@@ -1,0 +1,34 @@
+name: AlpineLLM - Full Pipeline
+
+on:
+  push:
+    branches: ['*']
+  pull_request:
+    branches: ['*']
+
+jobs:
+  full-pipeline:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup dependencies
+        uses: ./.github/actions/dependency_setup
+        with:
+          python-version: '3.10'
+
+      - name: Download dataset
+        run: |
+          bash core/utils/download_dataset.sh
+      - name: Run pre-processing
+        run: |
+          python run_preprocessing.py --cfg-path configs/ci_configs/ci_preprocessing_cfg.yml
+      - name: Run training
+        run: |
+          python run_training.py --cfg-path configs/ci_configs/ci_training_cfg.yml
+      - name: Run evaluation
+        run: |
+          python run_evaluation.py
+      - name: Run demo (with 10s timeout)
+        run: |
+          python run_demo.py --cfg-path configs/ci_configs/ci_demo_cfg.yml

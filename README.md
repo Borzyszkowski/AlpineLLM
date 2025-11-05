@@ -97,19 +97,19 @@ Please use a Python virtual environment to install the dependencies:
     
     [https://huggingface.co/spaces/Borzyszkowski/AlpineLLM-App](https://huggingface.co/spaces/Borzyszkowski/AlpineLLM-App)  
 
-### How to run unit tests?
+### How to run software tests?
 
-Apart from the end-to-end data processing pipelines, it is possible to execute each component of the pipeline in a modular, indepentent way.
+This repository uses GitHub Actions for automated testing and continous integration. 
 
-We provide several unit tests that allow to quickly start and test the key components:
+In addition to end-to-end pipelines, individual components can be started and tested independently:
 
-- <b>Data loader unit test</b>
+- <b>Data loader component test</b>
 
     ```
     python3 -m core.dataloaders.dataloader_llm
     ```
 
-- <b>Evaluator unit test</b>
+- <b>Evaluator component test</b>
 
     ```
     python3 -m core.evaluators.evaluator_llm

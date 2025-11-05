@@ -28,7 +28,7 @@ class PreprocessorShakespeare:
         data = self.data_preprocessing(input_file)
         
         # split data into train, test, val subsets
-        splits = self.split_data(data)
+        splits = self.split_data(data, train_size=cfg.train_size, test_size=cfg.test_size)
 
         # serialize the data splits into .pt files on disk
         self.export_data(splits)

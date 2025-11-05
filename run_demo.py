@@ -20,6 +20,8 @@ def parse_args():
                         help='The path to the working directory where the demo results will be saved.')
     parser.add_argument('--expr-ID', required=False, default='D01', type=str,
                         help='Demo ID')
+    parser.add_argument('--cfg-path', required=False, default='configs/demo_cfg.yml', type=str,
+                        help='Path to the user config file to overwrites the default configuration.')
     return parser.parse_args()
 
 
@@ -44,7 +46,7 @@ def run_demo(cfg):
 
     # run the demo application using inference wrapper
     demo_inference = AlpineLLMInference(cfg=cfg, hyperparam_cfg=hyperparam_cfg)
-    demo_inference.run_demo()
+    demo_inference.run_demo(cfg.test_prompt)
 
     logging.info(f"Completed demo app for the model: {cfg.load_weights_path}")
     logging.info(f"Results available in the output directory {cfg.work_dir}")
@@ -69,7 +71,7 @@ if __name__ == '__main__':
         exit(1)
 
     # Define the experiment configuration (user config overwrites default)
-    user_cfg_path = os.path.join(cwd, 'configs/demo_cfg.yml')
+    user_cfg_path = os.path.join(cwd, args.cfg_path)
     default_config = {
         'expr_ID': args.expr_ID,
         'work_dir': os.path.join(args.work_dir, args.expr_ID),
@@ -78,7 +80,8 @@ if __name__ == '__main__':
         'model_type': 'transformer',
         'user_cfg_path': user_cfg_path,
         'project_root_path': cwd,
-        'max_new_tokens': 500
+        'max_new_tokens': 500,
+        'test_prompt': None
     }
     config = Config(default_config, user_cfg_path)
     config.write_cfg(write_path=os.path.join(config.work_dir, 'demo_cfg.yml'))

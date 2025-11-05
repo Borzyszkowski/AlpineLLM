@@ -16,7 +16,7 @@ def parse_args():
     parser = argparse.ArgumentParser(
                         prog = "Evaluation (Inference Only)",
                         description = "Run evaluation pipeline.")
-    parser.add_argument("--data-path", required=False, default='./PREPROCESSED_DATA/P02', type=str,
+    parser.add_argument("--data-path", required=False, default='./PREPROCESSED_DATA/P01', type=str,
                         help = "Absolute path to the directory that contains ready dataset for evaluation.")
     parser.add_argument("--training-path", required=False, default='./TRAINING_RESULTS/T01', type=str,
                         help = "Absolute path to the training experiment for evaluation.")
@@ -24,6 +24,8 @@ def parse_args():
                         help='The path to the working directory where the evaluation results will be saved.')
     parser.add_argument('--expr-ID', required=False, default='E01', type=str,
                         help='Evaluation ID')
+    parser.add_argument('--cfg-path', required=False, default='configs/evaluation_cfg.yml', type=str,
+                        help='Path to the user config file to overwrites the default configuration.')
     return parser.parse_args()
 
 
@@ -72,7 +74,7 @@ if __name__ == '__main__':
         exit(1)
 
     # Define the experiment configuration (user config overwrites default)
-    user_cfg_path = os.path.join(cwd, 'configs/evaluation_cfg.yml')
+    user_cfg_path = os.path.join(cwd, args.cfg_path)
     default_config = {
         'dataset_dir': args.data_path,
         'expr_ID': args.expr_ID,
