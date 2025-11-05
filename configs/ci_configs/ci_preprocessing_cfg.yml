@@ -1,3 +1,3 @@
-# Using a very small test size for quick validation (e.g., 0.1% of the data)
-train_size: 0.999  
-test_size: 0.001   
+# Using a very small test size for quick validation (e.g., 0.01% of the data)
+train_size: 0.9999  
+test_size: 0.0001   

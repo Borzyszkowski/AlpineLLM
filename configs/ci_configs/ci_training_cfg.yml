@@ -1,6 +1,6 @@
 cpus_per_trial: 1
 gpus_per_trial: 0
-train_iters: 10
-val_iters: 2
+train_iters: 5
+val_iters: 1
 log_every_iteration: 1
-val_every_iteration: 5
+val_every_iteration: 2
