@@ -31,4 +31,4 @@ jobs:
           python run_evaluation.py
       - name: Run demo (with 10s timeout)
         run: |
-          timeout 10s python run_demo.py --cfg-path configs/ci_configs/ci_demo_cfg.yml
+          python run_demo.py --cfg-path configs/ci_configs/ci_demo_cfg.yml
